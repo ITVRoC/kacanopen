@@ -28,13 +28,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #pragma once
 
 #include "device.h"
 #include "publisher.h"
 #include "ros/ros.h"
- 
+
+#include "profiles.h"
+
 #include <string>
 #include <cmath>
 
@@ -49,6 +51,13 @@ namespace kaco {
 	/// You have to initialize the motor on your own.
 	/// The motor is expected to be in position mode.
 	class JointStatePublisher : public Publisher {
+  enum OP_MODE
+  {
+    NONE,
+    PROFILE_POSITION,
+    PROFILE_VELOCITY,
+    HOMING
+  };
 
 	public:
 
@@ -63,7 +72,7 @@ namespace kaco {
 		/// \param topic_name Custom topic name. Leave out for default.
 		/// \throws std::runtime_error if device is not CiA 402 compliant and in position_mode.
 		JointStatePublisher(Device& device, int32_t position_0_degree,
-			int32_t position_360_degree, const std::string& position_actual_field = "Position actual value", const std::string& topic_name = "");
+			int32_t position_360_degree, const std::string& position_actual_field = "Position actual value", const std::string& velocity_actual_field = "Velocity actual value", const std::string& topic_name = "");
 
 		/// \see interface Publisher
 		void advertise() override;
@@ -84,10 +93,13 @@ namespace kaco {
 		/// constant PI
 		static constexpr double pi() { return std::acos(-1); }
 
+    OP_MODE operation_mode_;
+
 		Device& m_device;
 		int32_t m_position_0_degree;
 		int32_t m_position_360_degree;
 		std::string m_position_actual_field;
+		std::string m_velocity_actual_field;
 		std::string m_topic_name;
 		bool m_initialized;
 

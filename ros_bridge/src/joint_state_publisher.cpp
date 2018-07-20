@@ -28,11 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include "joint_state_publisher.h"
 #include "utils.h"
 #include "logger.h"
-#include "profiles.h"
 #include "sdo_error.h"
 
 #include "ros/ros.h"
@@ -44,9 +43,9 @@
 namespace kaco {
 
 JointStatePublisher::JointStatePublisher(Device& device, int32_t position_0_degree,
-	int32_t position_360_degree, const std::string& position_actual_field, const std::string& topic_name)
+	int32_t position_360_degree, const std::string& position_actual_field, const std::string& velocity_actual_field, const std::string& topic_name)
 	: m_device(device), m_position_0_degree(position_0_degree),
-		m_position_360_degree(position_360_degree), m_position_actual_field(position_actual_field), m_topic_name(topic_name), m_initialized(false)
+		m_position_360_degree(position_360_degree), m_position_actual_field(position_actual_field), m_velocity_actual_field(velocity_actual_field), m_topic_name(topic_name), m_initialized(false)
 {
 
 	const uint16_t profile = device.get_device_profile_number();
@@ -58,13 +57,22 @@ JointStatePublisher::JointStatePublisher(Device& device, int32_t position_0_degr
 
 	const Value operation_mode = device.get_entry("Modes of operation display");
 
-	// TODO: look into INTERPOLATED_POSITION_MODE
-	if (operation_mode != Profiles::constants.at(402).at("profile_position_mode")
-		&& operation_mode != Profiles::constants.at(402).at("interpolated_position_mode")) {
-		throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
-			" Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
-		return;
-	}
+  if (operation_mode == Profiles::constants.at(402).at("profile_position_mode"))
+  {
+    operation_mode_ = PROFILE_POSITION;
+    PRINT("Publisher for profile_position_mode");
+  }
+  else if (operation_mode == Profiles::constants.at(402).at("profile_velocity_mode"))
+  {
+    operation_mode_ = PROFILE_VELOCITY;
+    PRINT("Publisher for profile_velocity_mode");
+  }
+  else
+  {
+
+    throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
+    " Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
+  }
 
 	if (m_topic_name.empty()) {
 		uint8_t node_id = device.get_node_id();
@@ -84,7 +92,6 @@ void JointStatePublisher::advertise() {
 }
 
 void JointStatePublisher::publish() {
-
 	try {
 
 		if (!m_initialized) {
@@ -94,19 +101,31 @@ void JointStatePublisher::publish() {
 		sensor_msgs::JointState js;
 
 		js.name.resize(1);
-		js.position.resize(1);
+		js.position.resize(0);
 
 		// only position supported yet.
 		js.velocity.resize(0);
 		js.effort.resize(0);
 
 		js.name[0] = m_topic_name;
+    js.header.stamp = ros::Time::now();
 
-		const int32_t pos = m_device.get_entry(m_position_actual_field);
-		js.header.stamp = ros::Time::now();
-		js.position[0] = pos_to_rad(pos);
 
-		DEBUG_LOG("Sending JointState message");
+    if (operation_mode_ == PROFILE_POSITION)
+    {
+      js.position.resize(1);
+      const int32_t pos = m_device.get_entry(m_position_actual_field);
+      js.position[0] = pos_to_rad(pos);
+
+    }
+    else if (operation_mode_ == PROFILE_VELOCITY)
+    {
+      js.velocity.resize(1);
+      const int32_t vel = m_device.get_entry(m_velocity_actual_field);
+      js.velocity[0] = vel;
+    }
+
+
 		DEBUG_DUMP(pos);
 		DEBUG_DUMP(js.position[0]);
 

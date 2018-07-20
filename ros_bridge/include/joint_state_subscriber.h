@@ -28,14 +28,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #pragma once
 
 #include "device.h"
 #include "subscriber.h"
 #include "ros/ros.h"
 #include "sensor_msgs/JointState.h"
- 
+
 #include <string>
 #include <cmath>
 
@@ -52,7 +52,13 @@ namespace kaco {
 	/// The motor is expected to be in position mode and
 	/// operational state.
 	class JointStateSubscriber : public Subscriber {
-
+    enum OP_MODE
+    {
+      NONE,
+      PROFILE_POSITION,
+      PROFILE_VELOCITY,
+      HOMING
+    };
 	public:
 
 		/// Constructor
@@ -85,6 +91,8 @@ namespace kaco {
 
 		/// constant PI
 		static constexpr double pi() { return std::acos(-1); }
+    OP_MODE operation_mode_;
+
 
 		Device& m_device;
 		int32_t m_position_0_degree;

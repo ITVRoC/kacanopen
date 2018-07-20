@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include "joint_state_subscriber.h"
 #include "utils.h"
 #include "logger.h"
@@ -58,11 +58,30 @@ JointStateSubscriber::JointStateSubscriber(Device& device, int32_t position_0_de
 	const Value operation_mode = device.get_entry("Modes of operation display");
 
 	// TODO: look into INTERPOLATED_POSITION_MODE
-	if (operation_mode != Profiles::constants.at(402).at("profile_position_mode")
-		&& operation_mode != Profiles::constants.at(402).at("interpolated_position_mode")) {
-		throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
-			" Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
-	}
+//	if (operation_mode != Profiles::constants.at(402).at("profile_position_mode")
+//		&& operation_mode != Profiles::constants.at(402).at("interpolated_position_mode")) {
+//		throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
+//			" Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
+//	}
+
+
+if (operation_mode == Profiles::constants.at(402).at("profile_position_mode"))
+{
+  operation_mode_ = PROFILE_POSITION;
+  PRINT("Subscriber for profile_position_mode");
+}
+else if (operation_mode == Profiles::constants.at(402).at("profile_velocity_mode"))
+{
+  operation_mode_ = PROFILE_VELOCITY;
+  PRINT("Subscriber for profile_velocity_mode");
+}
+else
+{
+
+  throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
+  " Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
+}
+
 
 	if (m_topic_name.empty()) {
 		uint8_t node_id = device.get_node_id();
@@ -74,7 +93,7 @@ JointStateSubscriber::JointStateSubscriber(Device& device, int32_t position_0_de
 void JointStateSubscriber::advertise() {
 
 	assert(!m_topic_name.empty());
-	DEBUG_LOG("Advertising "<<m_topic_name);
+	ROS_DEBUG_STREAM("Advertising "<<m_topic_name);
 	ros::NodeHandle nh;
 	m_subscriber = nh.subscribe(m_topic_name, queue_size, &JointStateSubscriber::receive, this);
 	m_initialized = true;
@@ -84,16 +103,24 @@ void JointStateSubscriber::advertise() {
 void JointStateSubscriber::receive(const sensor_msgs::JointState& msg) {
 
 	try {
-	
-		assert(msg.position.size()>0);
-		const int32_t pos = rad_to_pos(msg.position[0]);
+    if (operation_mode_ == PROFILE_POSITION)
+    {
+  		assert(msg.position.size()>0);
+  		const int32_t pos = rad_to_pos(msg.position[0]);
 
-		DEBUG_LOG("Received JointState message");
-		DEBUG_DUMP(pos);
-		DEBUG_DUMP(msg.position[0]);
+  		ROS_INFO_STREAM("Received JointState message [Position]");
+  		ROS_INFO_STREAM(pos);
+  		ROS_INFO_STREAM(msg.position[0]);
+      m_device.execute("set_target_position",static_cast<int32_t>(msg.velocity[0]));
+    }
+    else if (operation_mode_ == PROFILE_VELOCITY)
+    {
+      ROS_INFO_STREAM("Received JointState message [Velocity]");
+      m_device.set_entry("Target Velocity",static_cast<int32_t>(msg.velocity[0]));
+      m_device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
 
-		m_device.execute("set_target_position",pos);
-		
+    }
+
 	} catch (const sdo_error& error) {
 		// TODO: only catch timeouts?
 		ERROR("Exception in JointStateSubscriber::receive(): "<<error.what());
