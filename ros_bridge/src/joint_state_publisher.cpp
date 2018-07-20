@@ -126,10 +126,7 @@ void JointStatePublisher::publish() {
     }
 
 
-		DEBUG_DUMP(pos);
-		DEBUG_DUMP(js.position[0]);
-
-		m_publisher.publish(js);
+	m_publisher.publish(js);
 
 	} catch (const sdo_error& error) {
 		// TODO: only catch timeouts?
