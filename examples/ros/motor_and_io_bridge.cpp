@@ -127,7 +127,10 @@ int main(int argc, char* argv[]) {
 			PRINT("Enable operation");
 			device.execute("enable_operation");
 
-			// TODO: target_position should be mapped to a PDO
+			//PDOs for General Control word (0x200 + Device id)
+			//PDOs for Profile Position (0x300 + Device id)
+			//PDOs for Profile Velocity (0x400 + Device id)
+			//PDOs for Profile Torque (0x500 + Device id)
 			std::vector<kaco::Mapping> mapping_200, mapping_300, mapping_400, mapping_500;
 			kaco::Mapping mapping_cw, mapping_target_pos, mapping_target_vel, mapping_target_torq;
 			mapping_cw.entry_name = "Controlword";
@@ -150,11 +153,15 @@ int main(int argc, char* argv[]) {
 			device.add_transmit_pdo_mapping(0x47F, mapping_400);
 			//device.add_transmit_pdo_mapping(0x57F, mapping_500);
 
+
+			// startup sequence
 			device.set_entry("Target Velocity",static_cast<int32_t>(0));
 			device.set_entry("Controlword", static_cast<uint16_t>(0x00));
 			device.set_entry("Controlword", static_cast<uint16_t>(0x06));
 			device.set_entry("Controlword", static_cast<uint16_t>(0x07));
 			device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
+
+			// recovery
 			device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
 
 
@@ -176,6 +183,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	bridge.run();
+
+	// stop sequence (not possible here, but should be later)
 	//device.set_entry("Controlword", static_cast<uint16_t>(0x06));
 	//device.set_entry("Controlword", static_cast<uint16_t>(0x00));
 
