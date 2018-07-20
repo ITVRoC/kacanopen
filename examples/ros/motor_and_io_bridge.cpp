@@ -35,7 +35,8 @@
 #include "joint_state_subscriber.h"
 #include "entry_publisher.h"
 #include "entry_subscriber.h"
- 
+#include "mapping.h"
+
 #include <thread>
 #include <chrono>
 #include <memory>
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
 
 	// Set the name of your CAN bus. "slcan0" is a common bus name
 	// for the first SocketCAN device on a Linux system.
-	const std::string busname = "slcan0";
+	const std::string busname = "can0";
 
 	// Set the baudrate of your CAN bus. Most drivers support the values
 	// "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
@@ -100,6 +101,8 @@ int main(int argc, char* argv[]) {
 			device.add_receive_pdo_mapping(0x188, "Read input 8-bit/Digital Inputs 1-8", 0); // offest 0
 			device.add_receive_pdo_mapping(0x188, "Read input 8-bit/Digital Inputs 9-16", 1); // offset 1
 
+
+
 			// set some output (optional)
 			device.set_entry("Write output 8-bit/Digital Outputs 1-8", (uint8_t) 0xFF);
 
@@ -117,17 +120,49 @@ int main(int argc, char* argv[]) {
 
 			found = true;
 
+
 			PRINT("Set position mode");
-			device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
+			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
 
 			PRINT("Enable operation");
 			device.execute("enable_operation");
 
 			// TODO: target_position should be mapped to a PDO
+			std::vector<kaco::Mapping> mapping_200, mapping_300, mapping_400, mapping_500;
+			kaco::Mapping mapping_cw, mapping_target_pos, mapping_target_vel, mapping_target_torq;
+			mapping_cw.entry_name = "Controlword";
+			mapping_cw.offset = 0;
+			mapping_200.push_back(mapping_cw);
+			mapping_300.push_back(mapping_cw);
+			mapping_400.push_back(mapping_cw);
+			mapping_500.push_back(mapping_cw);
+			mapping_target_pos.entry_name = "Target Position";
+			mapping_target_pos.offset = 2;
+			mapping_300.push_back(mapping_target_pos);
+			mapping_target_vel.entry_name = "Target Velocity";
+			mapping_target_vel.offset = 2;
+			mapping_400.push_back(mapping_target_vel);
+			mapping_target_torq.entry_name = "Target Torque";
+			mapping_target_torq.offset = 2;
+			mapping_500.push_back(mapping_target_torq);
+			device.add_transmit_pdo_mapping(0x27F, mapping_200);
+			//device.add_transmit_pdo_mapping(0x37F, mapping_300);
+			device.add_transmit_pdo_mapping(0x47F, mapping_400);
+			//device.add_transmit_pdo_mapping(0x57F, mapping_500);
+
+			device.set_entry("Target Velocity",static_cast<int32_t>(0));
+			device.set_entry("Controlword", static_cast<uint16_t>(0x00));
+			device.set_entry("Controlword", static_cast<uint16_t>(0x06));
+			device.set_entry("Controlword", static_cast<uint16_t>(0x07));
+			device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
+			device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
+
+
+
 
 			auto jspub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
 			bridge.add_publisher(jspub, loop_rate);
-			
+
 			auto jssub = std::make_shared<kaco::JointStateSubscriber>(device, 0, 350000);
 			bridge.add_subscriber(jssub);
 
@@ -141,5 +176,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	bridge.run();
+	//device.set_entry("Controlword", static_cast<uint16_t>(0x06));
+	//device.set_entry("Controlword", static_cast<uint16_t>(0x00));
+
 
 }
