@@ -218,5 +218,12 @@
 			"Identity object/Vendor-ID": 251,
 			"Identity object/Product code": 1663172608
 		}
+	},
+	{
+		"file": "Wittenstein/simco.eds",
+		"match": {
+			"Identity object/Vendor-ID": 266,
+			"Identity object/Product code": 40026755
+		}
 	}
 ]
