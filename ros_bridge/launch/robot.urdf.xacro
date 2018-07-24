@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="one">
+  <xacro:property name="chassis_length" value="1.5" />
+  <xacro:property name="chassis_height" value="0.85" />
+  <xacro:property name="chassis_width" value="0.75" />
+  <xacro:property name="axle_to_rear" value="0.8" />
+  <xacro:property name="axle_to_front" value="0.44" />
+  <xacro:property name="track" value="0.73" />
+  <xacro:property name="wheel_radius" value="1" />
+  <xacro:property name="wheel_width" value="0.025" />
+
+  <xacro:include filename="$(find cob_description)/urdf/common.xacro" />
+  <xacro:include filename="$(find kacanopen)/ros_bridge/launch/wheel.urdf.xacro" />
+
+  <xacro:macro name="one" params="name">
+
+    <link name="${name}_footprint" />
+
+    <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin,
+         navigation stack dedpends on this frame -->
+    <joint name="${name}_footprint_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <parent link="${name}_footprint" />
+      <child link="${name}_link" />
+    </joint>
+    <link name="${name}_link" />
+
+
+    <joint name="${name}_center_joint" type="fixed">
+      <origin xyz="${-(chassis_length - axle_to_front)/2} 0 ${chassis_height/2}" rpy="0 0 0" />
+      <parent link="${name}_link" />
+      <child link="${name}_center" />
+    </joint>
+
+    <link name="${name}_center" />
+
+    <joint name="${name}_main_axle_joint" type="fixed">
+      <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
+      <child link="${name}_main_axle_link" />
+      <parent link="${name}_link" />
+    </joint>
+
+    <link name="${name}_main_axle_link" />
+
+    <xacro:wheel wheel_prefix="test" reduction_multiplier="1" radius="${wheel_radius}" width="${wheel_width}">
+      <origin xyz="0 ${track/2} 0" rpy="0 0 0" />
+    </xacro:wheel>
+
+    <joint name="${name}_caster_wheel_joint" type="fixed">
+      <origin xyz="${-axle_to_rear} 0 0" rpy="0 0 0" />
+      <child link="${name}_caster_wheel_link" />
+      <parent link="${name}_main_axle_link" />
+    </joint>
+
+    <link name="${name}_caster_wheel_link" />
+
+    <gazebo>
+      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <robotNamespace>${name}</robotNamespace>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:one name="base" />
+
+</robot>

@@ -125,10 +125,6 @@ void JointStatePublisher::publish() {
       js.velocity[0] = vel;
     }
 
-
-		DEBUG_DUMP(pos);
-		DEBUG_DUMP(js.position[0]);
-
 		m_publisher.publish(js);
 
 	} catch (const sdo_error& error) {
