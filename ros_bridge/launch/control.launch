@@ -1,0 +1,14 @@
+<launch>
+  <!-- Load controller configuration -->
+  <rosparam command="load" file="$(find kacanopen)/ros_bridge/launch/control.yaml" />
+
+  <!-- Spawn controllers -->
+  <node name="base_controller_spawner" pkg="controller_manager" type="spawner" args="test_joint_publisher test_velocity_controller --shutdown-timeout 3" />
+
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <param name="use_tf_static" value="false" />
+  </node>
+
+  <include file="$(find kacanopen)/ros_bridge/launch/motor_controllers.launch"/>
+</launch>

@@ -1,0 +1,18 @@
+test_wheel_motor:
+  actuator_name: test_wheel_motor
+  device_id: 0
+  operation_mode: profile_velocity
+  #  motor:
+  #    type: 10
+  #    ec_motor:
+  #      nominal_current: 5
+  #      max_output_current: 10
+  #      thermal_time_constant: 52.3
+  #      number_of_pole_pairs: 12
+  sensor:
+    encoder_min: 0
+    encoder_max: 65535 # educated guess
+  #  safety:
+  #    max_following_error: 8000
+  #    max_profile_velocity: 3000
+  #    max_acceleration: 90000

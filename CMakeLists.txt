@@ -97,7 +97,11 @@ if (NOT(${NO_ROS}))
 		roscpp
 		std_msgs
 		sensor_msgs
-		# message_generation
+    controller_manager
+    hardware_interface
+    transmission_interface
+    diagnostic_updater
+    # message_generation
 	)
 
 	catkin_package(

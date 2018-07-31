@@ -1,0 +1,5 @@
+<launch>
+  <node type="kacanopen_roscontrol_node" name="motor_test_node" pkg="kacanopen" output="screen" args="test_wheel_motor">
+    <rosparam command="load" file="$(find kacanopen)/ros_bridge/launch/motors.yaml" />
+  </node>
+</launch>
