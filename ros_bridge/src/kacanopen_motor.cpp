@@ -149,10 +149,10 @@ bool KaCanopenMotor::init()
     mapping_target_torq.entry_name = "Target Torque";
     mapping_target_torq.offset = 2;
     mapping_500.push_back(mapping_target_torq);
-    device_->add_transmit_pdo_mapping(0x27F, mapping_200);
-    //device.add_transmit_pdo_mapping(0x37F, mapping_300);
-    device_->add_transmit_pdo_mapping(0x47F, mapping_400);
-    //device.add_transmit_pdo_mapping(0x57F, mapping_500);
+    device_->add_transmit_pdo_mapping(0x200 + device_id_, mapping_200);
+    //device.add_transmit_pdo_mapping(0x300 + device_id_, mapping_300);
+    device_->add_transmit_pdo_mapping(0x400 + device_id_, mapping_400);
+    //device.add_transmit_pdo_mapping(0x500 + device_id_, mapping_500);
 
 
     // startup sequence

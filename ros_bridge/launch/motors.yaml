@@ -1,6 +1,6 @@
 test_wheel_motor:
   actuator_name: test_wheel_motor
-  device_id: 0
+  device_id: 0x7F
   operation_mode: profile_velocity
   #  motor:
   #    type: 10
