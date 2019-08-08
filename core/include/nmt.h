@@ -96,6 +96,10 @@ namespace kaco {
 		/// \remark thread-safe
 		void reset_all_nodes();
 
+		/// Sends reset communication to all nodes in the network
+		/// \remark thread-safe
+		void reset_communication_all_nodes();
+
 		/// Discovers nodes in the network via node guard protocol.
 		/// \remark thread-safe
 		void discover_nodes();

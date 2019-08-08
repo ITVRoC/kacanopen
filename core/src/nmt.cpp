@@ -58,10 +58,16 @@ void NMT::reset_all_nodes() {
 	//broadcast_nmt_message(Command::reset_node);
 	// TODO check node_id range
 	const auto pause = std::chrono::milliseconds(CONSECUTIVE_SEND_PAUSE_MS);
-	for (size_t node_id = 1; node_id < 239; ++node_id) {
-		send_nmt_message(node_id, Command::reset_node);
-		std::this_thread::sleep_for(pause);
-	}
+	send_nmt_message(0, Command::reset_node);
+	std::this_thread::sleep_for(pause);
+}
+
+void NMT::reset_communication_all_nodes() {
+	//broadcast_nmt_message(Command::reset_node);
+	// TODO check node_id range
+	const auto pause = std::chrono::milliseconds(CONSECUTIVE_SEND_PAUSE_MS);
+	send_nmt_message(0, Command::reset_communication);
+	std::this_thread::sleep_for(pause);
 }
 
 void NMT::discover_nodes() {

@@ -100,33 +100,27 @@ void JointStatePublisher::publish() {
 
 		sensor_msgs::JointState js;
 
-		js.name.resize(1);
 		js.position.resize(0);
-
-		// only position supported yet.
 		js.velocity.resize(0);
 		js.effort.resize(0);
 
+		js.name.resize(1);
 		js.name[0] = m_topic_name;
-    js.header.stamp = ros::Time::now();
+		js.header.stamp = ros::Time::now();
 
+		js.position.resize(1);
+		const int32_t pos = m_device.get_entry(m_position_actual_field);
+		js.position[0] = pos_to_rad(pos);
 
-    if (operation_mode_ == PROFILE_POSITION)
-    {
-      js.position.resize(1);
-      const int32_t pos = m_device.get_entry(m_position_actual_field);
-      js.position[0] = pos_to_rad(pos);
+		js.velocity.resize(1);
+		const int32_t vel = m_device.get_entry(m_velocity_actual_field);
+		js.velocity[0] = vel;
 
-    }
-    else if (operation_mode_ == PROFILE_VELOCITY)
-    {
-      js.velocity.resize(1);
-      const int32_t vel = m_device.get_entry(m_velocity_actual_field);
-      js.velocity[0] = vel;
-    }
-
-
-	m_publisher.publish(js);
+		js.effort.resize(1);
+		const int16_t current = m_device.get_entry("Current Actual Value", kaco::ReadAccessMethod::sdo);
+		js.effort[0] = current;
+		
+		m_publisher.publish(js);
 
 	} catch (const sdo_error& error) {
 		// TODO: only catch timeouts?
