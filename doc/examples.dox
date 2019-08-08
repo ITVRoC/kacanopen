@@ -62,7 +62,7 @@ namespace kaco {
 	There must be a CiA 401 device which is configured to send 'Read input 8-bit/Digital Inputs 1-8'
 	and 'Read input 8-bit/Digital Inputs 9-16' via TPDO1 and to receive 'Write output 8-bit/Digital Outputs 1-8' via RPDO1.
 
-\example examples/ros/motor_and_io_bridge.cpp
+\example examples/ros/espeleo_bridge.cpp
 
 	This example publishes and subscribes JointState messages for each connected CiA 402 device as well as
 	uint8 messages for each connected digital IO device (CiA 401).

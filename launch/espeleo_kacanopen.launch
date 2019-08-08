@@ -1,0 +1,5 @@
+<launch>
+	<!-- KACANOPEN -->
+	<!--node name="restart_can_socket" pkg="ros_eposmcd_driver" type="restart_can_socket.sh" / -->
+	<node name="example_motor_io" pkg="kacanopen" type="kacanopen_example_motor_and_io_bridge" output="screen"/>
+</launch>

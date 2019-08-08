@@ -89,6 +89,10 @@ int main(int argc, char* argv[]) {
 
 		device.load_dictionary_from_library();
 
+		const kaco::Value& accel((uint32_t)100000);
+		device.set_entry("profile_acceleration", accel);
+		device.set_entry("profile_deceleration", accel);
+
 		const auto profile = device.get_device_profile_number();
 		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
 		

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-message(STATUS "Configuring examples")
+message(STATUS "Configuring")
 
 file(GLOB TARGETS_SRC
 	"*.cpp"
@@ -18,7 +18,7 @@ endif()
 foreach(TARGET_SRC ${TARGETS_SRC})
 
 	get_filename_component(TARGET_NAME ${TARGET_SRC} NAME_WE)
-	set(TARGET_NAME "kacanopen_example_${TARGET_NAME}")
+	set(TARGET_NAME "kacanopen_${TARGET_NAME}")
 	add_executable(${TARGET_NAME} ${TARGET_SRC})
 	set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 11)
 	target_link_libraries(${TARGET_NAME} kacanopen_core)
@@ -28,12 +28,12 @@ foreach(TARGET_SRC ${TARGETS_SRC})
 		target_link_libraries(${TARGET_NAME} kacanopen_ros_bridge)
 	endif()
 	
-	list(APPEND KACANOPEN_EXAMPLES_TARGET_NAMES ${TARGET_NAME})
+	list(APPEND KACANOPEN_TARGET_NAMES ${TARGET_NAME})
 
 endforeach(TARGET_SRC ${TARGETS_SRC})
 
 # Install
 if (${INSTALL_EXAMPLES})
-	kacanopen_install("${KACANOPEN_EXAMPLES_TARGET_NAMES}" FALSE)
+	kacanopen_install("${KACANOPEN_TARGET_NAMES}" FALSE)
 endif()
 
