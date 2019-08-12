@@ -81,6 +81,9 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "canopen_bridge");
 	kaco::Bridge bridge;
 
+	int acceleration;
+	ros::param::get("/acceleration", acceleration);
+
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {
 
@@ -89,7 +92,7 @@ int main(int argc, char* argv[]) {
 
 		device.load_dictionary_from_library();
 
-		const kaco::Value& accel((uint32_t)100000);
+		const kaco::Value& accel((uint32_t)acceleration);
 		device.set_entry("profile_acceleration", accel);
 		device.set_entry("profile_deceleration", accel);
 
@@ -108,8 +111,6 @@ int main(int argc, char* argv[]) {
 
 			PRINT("Enable operation");
 			device.execute("enable_operation");
-
-            //device.add_receive_pdo_mapping(0x0281, "Current Actual Value", 1);
 
 			auto jspub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
 			bridge.add_publisher(jspub, loop_rate);

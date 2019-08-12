@@ -1,5 +1,7 @@
 <launch>
 	<!-- KACANOPEN -->
 	<!--node name="restart_can_socket" pkg="ros_eposmcd_driver" type="restart_can_socket.sh" / -->
-	<node name="kacanopen_espeleo" pkg="kacanopen" type="kacanopen_espeleo_bridge" output="screen"/>
+	<node name="kacanopen_espeleo" pkg="kacanopen" type="kacanopen_espeleo_bridge" output="screen">
+		<param name="acceleration" value="100000" />
+	</node>
 </launch>
