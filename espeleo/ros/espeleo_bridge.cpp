@@ -81,8 +81,8 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "canopen_bridge");
 	kaco::Bridge bridge;
 
-	int acceleration;
-	ros::param::get("/acceleration", acceleration);
+	int acceleration = 100000;
+	ros::param::get("~acceleration", acceleration);
 
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {
@@ -112,11 +112,17 @@ int main(int argc, char* argv[]) {
 			PRINT("Enable operation");
 			device.execute("enable_operation");
 
-			auto jspub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
-			bridge.add_publisher(jspub, loop_rate);
+			auto joint_state_pub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
+			bridge.add_publisher(joint_state_pub, loop_rate);
 
-			auto jssub = std::make_shared<kaco::JointStateSubscriber>(device, 0, 350000);
-			bridge.add_subscriber(jssub);
+			auto status_pub = std::make_shared<kaco::EntryPublisher>(device, "statusword");
+			bridge.add_publisher(status_pub, loop_rate);
+
+			auto current_pub = std::make_shared<kaco::EntryPublisher>(device, "current_actual_value");
+			bridge.add_publisher(current_pub, loop_rate);
+
+			auto joint_state_sub = std::make_shared<kaco::JointStateSubscriber>(device, 0, 350000);
+			bridge.add_subscriber(joint_state_sub);
 		}
 
 	}

@@ -100,10 +100,6 @@ void JointStatePublisher::publish() {
 
 		sensor_msgs::JointState js;
 
-		js.position.resize(0);
-		js.velocity.resize(0);
-		js.effort.resize(0);
-
 		js.name.resize(1);
 		js.name[0] = m_topic_name;
 		js.header.stamp = ros::Time::now();
@@ -116,10 +112,6 @@ void JointStatePublisher::publish() {
 		const int32_t vel = m_device.get_entry(m_velocity_actual_field);
 		js.velocity[0] = vel;
 
-		js.effort.resize(1);
-		const int16_t current = m_device.get_entry("Current Actual Value", kaco::ReadAccessMethod::sdo);
-		js.effort[0] = current;
-		
 		m_publisher.publish(js);
 
 	} catch (const sdo_error& error) {
