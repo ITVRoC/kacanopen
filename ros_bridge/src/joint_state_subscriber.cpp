@@ -108,14 +108,14 @@ void JointStateSubscriber::receive(const sensor_msgs::JointState& msg) {
   		assert(msg.position.size()>0);
   		const int32_t pos = rad_to_pos(msg.position[0]);
 
-  		ROS_INFO_STREAM("Received JointState message [Position]");
-  		ROS_INFO_STREAM(pos);
-  		ROS_INFO_STREAM(msg.position[0]);
+  		//ROS_INFO_STREAM("Received JointState message [Position]");
+  		//ROS_INFO_STREAM(pos);
+  		//ROS_INFO_STREAM(msg.position[0]);
       m_device.execute("set_target_position",static_cast<int32_t>(msg.velocity[0]));
     }
     else if (operation_mode_ == PROFILE_VELOCITY)
     {
-      ROS_INFO_STREAM("Received JointState message [Velocity]");
+      //ROS_INFO_STREAM("Received JointState message [Velocity]");
       m_device.set_entry("Target Velocity",static_cast<int32_t>(msg.velocity[0]));
       m_device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
 
