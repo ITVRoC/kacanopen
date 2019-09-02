@@ -92,16 +92,36 @@ message(STATUS "Found Threads library: ${CMAKE_THREAD_LIBS_INIT}")
 ### ROS ###
 
 if (NOT(${NO_ROS}))
+	
+	get_cmake_property(_variableNames VARIABLES)
+	list (SORT _variableNames)
+	foreach (_variableName ${_variableNames})
+	    message(STATUS "${_variableName}=${${_variableName}}")
+	endforeach()
 
 	find_package(catkin REQUIRED COMPONENTS
 		roscpp
 		std_msgs
 		sensor_msgs
-    controller_manager
-    hardware_interface
-    transmission_interface
-    diagnostic_updater
-    # message_generation
+	    controller_manager
+	    hardware_interface
+	    transmission_interface
+	    diagnostic_updater
+	    message_generation
+	)
+
+	## Generate services in the 'srv' folder
+	#FILES
+	add_service_files(
+		DIRECTORY
+		${PROJECT_SOURCE_DIR}/espeleo/srv/
+		FILES
+		reset_motors.srv
+		)
+
+	generate_messages(
+    	DEPENDENCIES
+    	std_msgs
 	)
 
 	catkin_package(

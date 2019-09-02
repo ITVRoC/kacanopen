@@ -8,9 +8,8 @@ file(GLOB TARGETS_SRC
 )
 
 if (NOT(${NO_ROS}))
-	#list(REMOVE_ITEM TARGETS_SRC "${CMAKE_CURRENT_LIST_DIR}/ros_*")
 	file(GLOB TARGETS_SRC_ROS
-		"ros/*.cpp"
+		"src/*.cpp"
 	)
 	list(APPEND TARGETS_SRC ${TARGETS_SRC_ROS})
 endif()
@@ -36,4 +35,3 @@ endforeach(TARGET_SRC ${TARGETS_SRC})
 if (${INSTALL_EXAMPLES})
 	kacanopen_install("${KACANOPEN_TARGET_NAMES}" FALSE)
 endif()
-

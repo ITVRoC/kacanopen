@@ -36,6 +36,9 @@
 #include "entry_publisher.h"
 #include "entry_subscriber.h"
 #include "mapping.h"
+#include "ros/ros.h"
+# include <std_srvs/Empty.h>
+# include <kacanopen/reset_motors.h>
 
 #include <thread>
 #include <chrono>
@@ -44,11 +47,26 @@
 // #define BUSNAME ... // set by CMake
 // #define BAUDRATE ... // set by CMake
 
+kaco::Master master;
+
+bool reset_motors(std_srvs::Empty::Request &req, kacanopen::reset_motors::Response &res)
+{
+	bool sucess = true;
+
+	ROS_DEBUG("resetting CAN communication and nodes");
+	master.core.nmt.reset_communication_all_nodes();
+	master.core.nmt.reset_all_nodes();
+
+  	ROS_INFO("sending back response: [%d]", sucess);
+  	res.success = true;
+  	return sucess;
+}
+
 int main(int argc, char* argv[]) {
 
 	// Set the name of your CAN bus. "slcan0" is a common bus name
 	// for the first SocketCAN device on a Linux system.
-  const std::string busname = "can0";
+  	const std::string busname = "can0";
 
 	// Set the baudrate of your CAN bus. Most drivers support the values
 	// "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
@@ -59,7 +77,7 @@ int main(int argc, char* argv[]) {
 
 	const double loop_rate = 10; // [Hz]
 
-	kaco::Master master;
+	
 	if (!master.start(busname, baudrate)) {
 		ERROR("Starting master failed.");
 		return EXIT_FAILURE;
@@ -80,6 +98,9 @@ int main(int argc, char* argv[]) {
 	// Create bridge
 	ros::init(argc, argv, "canopen_bridge");
 	kaco::Bridge bridge;
+
+  	ros::NodeHandle n;
+  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
 
 	int acceleration = 100000;
 	ros::param::get("~acceleration", acceleration);
