@@ -88,7 +88,12 @@ void JointStatePublisher::advertise() {
 	ros::NodeHandle nh;
 	m_publisher = nh.advertise<sensor_msgs::JointState>(m_topic_name, queue_size);
 	m_initialized = true;
+	m_publish_state = true;
 
+}
+
+void JointStatePublisher::set_publish_state(bool state) {
+	m_publish_state = state;
 }
 
 void JointStatePublisher::publish() {
@@ -96,6 +101,11 @@ void JointStatePublisher::publish() {
 
 		if (!m_initialized) {
 			throw std::runtime_error("[JointStatePublisher] publish() called before advertise().");
+		}
+
+		if (!m_publish_state) {
+			ERROR("[JointStatePublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+			return;
 		}
 
 		sensor_msgs::JointState js;

@@ -95,9 +95,19 @@ void EntryPublisher::advertise() {
 			ERROR("[EntryPublisher::advertise] Invalid entry type.")
 	}
 
+	m_publish_state = true;
+}
+
+void EntryPublisher::set_publish_state(bool state) {
+	m_publish_state = state;
 }
 
 void EntryPublisher::publish() {
+
+	if (!m_publish_state) {
+		ERROR("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+		return;
+	}
 
 	try {
 

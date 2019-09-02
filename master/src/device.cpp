@@ -53,7 +53,7 @@ Device::~Device()
 
 void Device::start() {
 
-	m_core.nmt.send_nmt_message(m_node_id,NMT::Command::start_node);
+	m_core.nmt.send_nmt_message(m_node_id, NMT::Command::start_node);
 
 	if (!m_eds_library.lookup_library()) {
 		throw canopen_error("[Device::start] EDS library not found. If and only if you make sure for yourself, that mandatory"

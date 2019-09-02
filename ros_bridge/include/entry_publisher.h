@@ -58,6 +58,8 @@ namespace kaco {
 		/// \see interface Publisher
 		void publish() override;
 
+		void set_publish_state(bool state) override;
+
 	private:
 
 		static const bool debug = false;
@@ -73,6 +75,8 @@ namespace kaco {
 		std::string m_entry_name;
 		ReadAccessMethod m_access_method;
 		Type m_type;
+
+		bool m_publish_state;
 
 	};
 

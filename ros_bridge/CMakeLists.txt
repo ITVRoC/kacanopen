@@ -18,5 +18,5 @@ kacanopen_install(${TARGET_NAME} TRUE)
 
 add_executable(kacanopen_roscontrol_node node/kacanopen_node.cpp)
 set_property(TARGET kacanopen_roscontrol_node PROPERTY CXX_STANDARD 14)
-target_link_libraries(kacanopen_roscontrol_node  kacanopen_ros_bridge kacanopen_master ${catkin_LIBRARIES})
+target_link_libraries(kacanopen_roscontrol_node kacanopen_core kacanopen_ros_bridge kacanopen_master ${catkin_LIBRARIES})
 kacanopen_install(kacanopen_roscontrol_node TRUE)

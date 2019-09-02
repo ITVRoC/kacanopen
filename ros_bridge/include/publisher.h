@@ -46,8 +46,10 @@ namespace kaco {
 		/// This will be called repeatedly by kaco::Bridge::run()
 		virtual void publish() = 0;
 
+		virtual void set_publish_state(bool state) { };
+
 		// Virtual destructor must be defined!
-		virtual ~Publisher() { }
+		virtual ~Publisher() { };
 
 	};
 

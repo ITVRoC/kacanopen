@@ -52,6 +52,10 @@ void Bridge::add_publisher(std::shared_ptr<Publisher> publisher, double loop_rat
 	);
 }
 
+std::vector<std::shared_ptr<Publisher>> Bridge::get_publishers() {
+	return m_publishers;
+}
+
 void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
 	m_subscribers.push_back(subscriber);
 	subscriber->advertise();

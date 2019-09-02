@@ -64,6 +64,7 @@ namespace kaco {
 		///   to a subscriber may never change after advertising it to ROS.
 		void add_subscriber(std::shared_ptr<Subscriber> subscriber);
 
+		std::vector<std::shared_ptr<Publisher>> get_publishers();
 	private:
 
 		static const bool debug = false;

@@ -80,6 +80,8 @@ namespace kaco {
 		/// \see interface Publisher
 		void publish() override;
 
+		void set_publish_state(bool state) override;
+
 	private:
 
 		static const bool debug = false;
@@ -102,6 +104,7 @@ namespace kaco {
 		std::string m_velocity_actual_field;
 		std::string m_topic_name;
 		bool m_initialized;
+		bool m_publish_state;
 
 		ros::Publisher m_publisher;
 

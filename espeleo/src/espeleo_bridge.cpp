@@ -39,6 +39,8 @@
 #include "ros/ros.h"
 # include <std_srvs/Empty.h>
 # include <kacanopen/reset_motors.h>
+#include "publisher.h"
+
 
 #include <thread>
 #include <chrono>
@@ -48,18 +50,63 @@
 // #define BAUDRATE ... // set by CMake
 
 kaco::Master master;
+kaco::Bridge bridge;
+int acceleration = 100000;
 
 bool reset_motors(std_srvs::Empty::Request &req, kacanopen::reset_motors::Response &res)
 {
-	bool sucess = true;
+	
+	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();
+	for(int i=0; i < pub_list.size(); ++i){
+		pub_list[i]->set_publish_state(false);
+	}
 
-	ROS_DEBUG("resetting CAN communication and nodes");
+	ROS_INFO("resetting CAN communication and nodes");
 	master.core.nmt.reset_communication_all_nodes();
 	master.core.nmt.reset_all_nodes();
 
-  	ROS_INFO("sending back response: [%d]", sucess);
+	ROS_INFO("SLEEPING...");
+	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+	ROS_INFO("AWAKE...");
+
+	for (size_t i=0; i < master.num_devices(); ++i) {
+		kaco::Device& device = master.get_device(i);
+		device.start();
+		device.load_dictionary_from_library();
+
+		const kaco::Value& accel((uint32_t)acceleration);
+		device.set_entry("profile_acceleration", accel);
+		device.set_entry("profile_deceleration", accel);
+
+		const auto profile = device.get_device_profile_number();
+		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
+		
+		if (profile==402) {
+
+			PRINT("Set velocity mode");
+			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+
+			// PRINT("Set position mode");
+			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
+
+			PRINT("Enable operation");
+			device.execute("enable_operation");
+		}
+	}
+
+	ROS_INFO("SLEEPING...");
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+	ROS_INFO("AWAKE...");
+
+	for(std::size_t i=0; i<pub_list.size(); ++i){
+		pub_list[i]->advertise();
+		pub_list[i]->set_publish_state(true);
+	}
+
   	res.success = true;
-  	return sucess;
+  	ROS_INFO("sending back response: [%d]", res.success);
+
+  	return true;
 }
 
 int main(int argc, char* argv[]) {
@@ -97,12 +144,10 @@ int main(int argc, char* argv[]) {
 
 	// Create bridge
 	ros::init(argc, argv, "canopen_bridge");
-	kaco::Bridge bridge;
 
   	ros::NodeHandle n;
   	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
 
-	int acceleration = 100000;
 	ros::param::get("~acceleration", acceleration);
 
 	bool found = false;
