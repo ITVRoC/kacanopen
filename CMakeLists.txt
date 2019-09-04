@@ -112,13 +112,12 @@ if (NOT(${NO_ROS}))
 	)
 
 	## Generate services in the 'srv' folder
-	#FILES
-	add_service_files(
-		DIRECTORY
-		${PROJECT_SOURCE_DIR}/espeleo/srv/
-		FILES
-		reset_motors.srv
-		)
+	#add_service_files(
+	#	DIRECTORY
+	#	${PROJECT_SOURCE_DIR}/espeleo/srv/
+	#	FILES
+	#	reset_motors.srv
+	#	)
 
 	generate_messages(
     	DEPENDENCIES
