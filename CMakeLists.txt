@@ -108,6 +108,7 @@ if (NOT(${NO_ROS}))
 	    transmission_interface
 	    diagnostic_updater
 	    message_generation
+		espeleo_msg_srv
 	)
 
 	## Generate services in the 'srv' folder
