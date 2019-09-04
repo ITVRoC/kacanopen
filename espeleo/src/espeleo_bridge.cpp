@@ -37,8 +37,8 @@
 #include "entry_subscriber.h"
 #include "mapping.h"
 #include "ros/ros.h"
-# include <std_srvs/Empty.h>
-# include <espeleo_msg_srv/reset_motors.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
 #include "publisher.h"
 
 
@@ -53,7 +53,7 @@ kaco::Master master;
 kaco::Bridge bridge;
 int acceleration = 100000;
 
-bool reset_motors(std_srvs::Empty::Request &req, espeleo_msg_srv::reset_motors::Response &res)
+bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
 	
 	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();

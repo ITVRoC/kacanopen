@@ -120,8 +120,8 @@ if (NOT(${NO_ROS}))
 	#	)
 
 	generate_messages(
-    	DEPENDENCIES
-    	std_msgs
+	    	DEPENDENCIES
+	    	std_msgs
 	)
 
 	catkin_package(
