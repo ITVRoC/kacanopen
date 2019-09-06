@@ -79,7 +79,8 @@ namespace kaco {
 		static const bool debug = false;
 
 		// TODO: let the user change this?
-		static const unsigned queue_size = 10000;
+		//static const unsigned queue_size = 10000;
+		static const unsigned queue_size = 1;
 
 		ros::Subscriber m_subscriber;
 		std::string m_device_prefix;

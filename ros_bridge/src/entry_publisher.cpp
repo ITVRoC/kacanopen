@@ -105,7 +105,7 @@ void EntryPublisher::set_publish_state(bool state) {
 void EntryPublisher::publish() {
 
 	if (!m_publish_state) {
-		ERROR("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+		WARN("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
 		return;
 	}
 

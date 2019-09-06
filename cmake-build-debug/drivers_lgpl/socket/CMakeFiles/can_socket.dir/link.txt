@@ -1,0 +1,1 @@
+/usr/bin/cc -fPIC  -Wall -Wextra -g  -shared -Wl,-soname,libcan_socket.so -o ../../devel/lib/libcan_socket.so CMakeFiles/can_socket.dir/can_socket.c.o 

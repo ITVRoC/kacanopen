@@ -1,0 +1,8 @@
+prefix=/home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/cmake-build-debug/devel
+
+Name: kacanopen
+Description: Description of kacanopen
+Version: 0.1.0
+Cflags: -I/home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/core/include -I/home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/master/include -I/home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/ros_bridge/include
+Libs: -L/home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/cmake-build-debug/devel/lib -lkacanopen_core -lkacanopen_master -lkacanopen_ros_bridge
+Requires: message_runtime

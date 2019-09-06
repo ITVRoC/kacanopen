@@ -87,7 +87,8 @@ namespace kaco {
 		static const bool debug = false;
 
 		// TODO: let the user change this?
-		static const unsigned queue_size = 100;
+		//static const unsigned queue_size = 100;
+		static const unsigned queue_size = 10;
 
 		/// converts "position actiual value" from CanOpen to radiant using m_position_0_degree and m_position_360_degree
 		double pos_to_rad(int32_t pos) const;

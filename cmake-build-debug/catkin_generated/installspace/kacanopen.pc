@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: kacanopen
+Description: Description of kacanopen
+Version: 0.1.0
+Cflags: -I/usr/local/include
+Libs: -L/usr/local/lib -lkacanopen_core -lkacanopen_master -lkacanopen_ros_bridge
+Requires: message_runtime

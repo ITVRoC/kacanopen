@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/espeleo/catkin_ws/src/espeleo/espeleo_embedded/kacanopen/cmake-build-debug/devel/setup.sh

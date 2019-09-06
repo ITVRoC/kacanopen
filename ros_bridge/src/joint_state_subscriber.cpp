@@ -34,109 +34,122 @@
 #include "logger.h"
 #include "profiles.h"
 #include "sdo_error.h"
-
 #include "ros/ros.h"
-
 #include <string>
 
 namespace kaco {
 
-JointStateSubscriber::JointStateSubscriber(Device& device, int32_t position_0_degree,
-	int32_t position_360_degree, std::string topic_name)
-	: m_device(device), m_position_0_degree(position_0_degree),
-		m_position_360_degree(position_360_degree), m_topic_name(topic_name),
-		m_initialized(false)
-{
+  JointStateSubscriber::JointStateSubscriber(Device & device, int32_t position_0_degree,
+      int32_t position_360_degree, std::string topic_name): m_device(device), m_position_0_degree(position_0_degree),
+    m_position_360_degree(position_360_degree), m_topic_name(topic_name),
+    m_initialized(false) {
 
-	const uint16_t profile = device.get_device_profile_number();
+      const uint16_t profile = device.get_device_profile_number();
 
-	if (profile != 402) {
-		throw std::runtime_error("JointStatePublisher can only be used with a CiA 402 device."
-			" You passed a device with profile number "+std::to_string(profile));
-	}
+      if (profile != 402) {
+        throw std::runtime_error("JointStatePublisher can only be used with a CiA 402 device."
+          " You passed a device with profile number " + std::to_string(profile));
+      }
 
-	const Value operation_mode = device.get_entry("Modes of operation display");
+      const Value operation_mode = device.get_entry("Modes of operation display");
 
-	// TODO: look into INTERPOLATED_POSITION_MODE
-//	if (operation_mode != Profiles::constants.at(402).at("profile_position_mode")
-//		&& operation_mode != Profiles::constants.at(402).at("interpolated_position_mode")) {
-//		throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
-//			" Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
-//	}
+      // TODO: look into INTERPOLATED_POSITION_MODE
+      //	if (operation_mode != Profiles::constants.at(402).at("profile_position_mode")
+      //		&& operation_mode != Profiles::constants.at(402).at("interpolated_position_mode")) {
+      //		throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
+      //			" Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
+      //	}
 
+      if (operation_mode == Profiles::constants.at(402).at("profile_position_mode")) {
+        operation_mode_ = PROFILE_POSITION;
+        PRINT("Subscriber for profile_position_mode");
+      } else if (operation_mode == Profiles::constants.at(402).at("profile_velocity_mode")) {
+        operation_mode_ = PROFILE_VELOCITY;
+        PRINT("Subscriber for profile_velocity_mode");
+      } else {
 
-if (operation_mode == Profiles::constants.at(402).at("profile_position_mode"))
-{
-  operation_mode_ = PROFILE_POSITION;
-  PRINT("Subscriber for profile_position_mode");
-}
-else if (operation_mode == Profiles::constants.at(402).at("profile_velocity_mode"))
-{
-  operation_mode_ = PROFILE_VELOCITY;
-  PRINT("Subscriber for profile_velocity_mode");
-}
-else
-{
+        throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
+          " Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
+      }
 
-  throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
-  " Try device.set_entry(\"modes_of_operation\", device.get_constant(\"profile_position_mode\"));");
-}
-
-
-	if (m_topic_name.empty()) {
-		uint8_t node_id = device.get_node_id();
-		m_topic_name = "device" + std::to_string(node_id) + "/set_joint_state";
-	}
-
-}
-
-void JointStateSubscriber::advertise() {
-
-	assert(!m_topic_name.empty());
-	ROS_DEBUG_STREAM("Advertising "<<m_topic_name);
-	ros::NodeHandle nh;
-	m_subscriber = nh.subscribe(m_topic_name, queue_size, &JointStateSubscriber::receive, this);
-	m_initialized = true;
-
-}
-
-void JointStateSubscriber::receive(const sensor_msgs::JointState& msg) {
-
-	try {
-    if (operation_mode_ == PROFILE_POSITION)
-    {
-  		assert(msg.position.size()>0);
-  		const int32_t pos = rad_to_pos(msg.position[0]);
-
-  		//ROS_INFO_STREAM("Received JointState message [Position]");
-  		//ROS_INFO_STREAM(pos);
-  		//ROS_INFO_STREAM(msg.position[0]);
-      m_device.execute("set_target_position",static_cast<int32_t>(msg.velocity[0]));
-    }
-    else if (operation_mode_ == PROFILE_VELOCITY)
-    {
-      //ROS_INFO_STREAM("Received JointState message [Velocity]");
-      m_device.set_entry("Target Velocity",static_cast<int32_t>(msg.velocity[0]));
-      m_device.set_entry("Controlword", static_cast<uint16_t>(0x1F));
+      if (m_topic_name.empty()) {
+        uint8_t node_id = device.get_node_id();
+        m_topic_name = "device" + std::to_string(node_id) + "/set_joint_state";
+      }
 
     }
 
-	} catch (const sdo_error& error) {
-		// TODO: only catch timeouts?
-		ERROR("Exception in JointStateSubscriber::receive(): "<<error.what());
-	}
+  void JointStateSubscriber::advertise() {
 
-}
+    assert(!m_topic_name.empty());
+    ROS_DEBUG_STREAM("Advertising " << m_topic_name);
+    ros::NodeHandle nh;
+    m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
+    //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
+    m_initialized = true;
 
-int32_t JointStateSubscriber::rad_to_pos(double rad) const {
+    // Test callback - DELETEME
+    //m_subscriber1 = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receiveTest, this, ros::TransportHints().tcpNoDelay());
 
-	const double p = rad;
-	const double min = m_position_0_degree;
-	const double max = m_position_360_degree;
-	const double dist = max - min;
-	const double result = ((p/(2*pi()))*dist)+min;
-	return (int32_t) result;
+  }
 
-}
+  void JointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
+
+  	ROS_INFO("JointStateSubscriber receive -- called %s", m_topic_name.c_str());
+    try {
+      ROS_DEBUG_STREAM("Operation Mode " << operation_mode_);
+      //ROS_DEBUG_STREAM("MSG:" << msg);
+
+      if (operation_mode_ == PROFILE_POSITION) {
+      	if(msg.position.size() <= 0){
+      		ROS_WARN("subscriber %s received EMPTY JointState position", m_topic_name.c_str());
+      		return;
+      	}
+
+        const int32_t pos = rad_to_pos(msg.position[0]);
+
+        ROS_INFO_STREAM("Received JointState message [Position]");
+        ROS_INFO_STREAM(pos);
+        ROS_INFO_STREAM(msg.position[0]);
+        m_device.execute("set_target_position", static_cast < int32_t > (msg.position[0]));
+      } 
+      else if (operation_mode_ == PROFILE_VELOCITY) {
+      	if(msg.velocity.size() <= 0){
+      		ROS_WARN("subscriber %s received EMPTY JointState velocity", m_topic_name.c_str());
+      		return;
+      	}
+
+        ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
+        //ROS_INFO_STREAM(msg.velocity[0]);
+        m_device.set_entry("Target Velocity", static_cast < int32_t > (msg.velocity[0]));
+        m_device.set_entry("Controlword", static_cast < uint16_t > (0x1F));
+
+      }
+    } catch (const sdo_error & error) {
+      // TODO: only catch timeouts?
+      ERROR("Exception in JointStateSubscriber::receive(): " << error.what());
+    }
+
+  }
+
+
+  void JointStateSubscriber::receiveTest(const sensor_msgs::JointState & msg) {
+
+    ROS_INFO_STREAM("receiveTest");
+    ROS_INFO_STREAM(msg);
+    
+
+  }
+
+  int32_t JointStateSubscriber::rad_to_pos(double rad) const {
+
+    const double p = rad;
+    const double min = m_position_0_degree;
+    const double max = m_position_360_degree;
+    const double dist = max - min;
+    const double result = ((p / (2 * pi())) * dist) + min;
+    return (int32_t) result;
+
+  }
 
 } // end namespace kaco
