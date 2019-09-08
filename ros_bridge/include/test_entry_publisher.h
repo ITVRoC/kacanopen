@@ -29,52 +29,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
  
-#include "bridge.h"
-#include "logger.h"
-#include "sdo_error.h"
+#pragma once
+
+#include "device.h"
+#include "publisher.h"
 #include "ros/ros.h"
 
-#include <future>
+#include <string>
 
 namespace kaco {
 
-void Bridge::add_publisher(std::shared_ptr<Publisher> publisher, double loop_rate) {
-	m_publishers.push_back(publisher);
-	publisher->advertise();
+	/// This class provides a Publisher implementation for
+	/// use with kaco::Bridge. It publishes a value from
+	/// a device's dictionary.
+	class TestEntryPublisher : public Publisher {
 
-	m_futures.push_front(
-		std::async(std::launch::async, [publisher, loop_rate, this](){
-			ros::Rate rate(loop_rate);
-			while(ros::ok()) {
-				publisher->publish();
-				rate.sleep();
-			}
-		})
-	);
-}
+	public:
 
-std::vector<std::shared_ptr<Publisher>> Bridge::get_publishers() {
-	return m_publishers;
-}
+		/// Constructor
+		/// \param device The CanOpen device
+		/// \param entry_name The name of the entry. See device profile.
+		/// \param access_method You can choose default/sdo/pdo method. See kaco::Device docs.
+		TestEntryPublisher(uint8_t device, const std::string& entry_name, const ReadAccessMethod access_method = ReadAccessMethod::use_default);
 
-void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
-	m_subscribers.push_back(subscriber);
-	subscriber->advertise();
-}
+		/// \see interface Publisher
+		void advertise() override;
 
-void Bridge::run() {
-	// spinner with problems - multithread
-	ros::AsyncSpinner spinner(0);
-	spinner.start();
-	ros::waitForShutdown();
+		/// \see interface Publisher
+		void publish() override;
 
-	// working spinner - no threads
-	// ros::Rate r(30); // 30 hz
-	// while (ros::ok())
-	// {
-	//   ros::spinOnce();
-	//   r.sleep();
-	// }
-}
+		void set_publish_state(bool state) override;
+
+	private:
+
+		static const bool debug = false;
+
+		// TODO: let the user change this?
+		//static const unsigned queue_size = 100;
+		static const unsigned queue_size = 10;
+
+		ros::Publisher m_publisher;
+		std::string m_device_prefix;
+		std::string m_name;
+
+		uint8_t m_device;
+		std::string m_entry_name;
+		ReadAccessMethod m_access_method;
+		Type m_type;
+
+		bool m_publish_state;
+
+	};
 
 } // end namespace kaco

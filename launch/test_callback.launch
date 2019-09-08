@@ -1,0 +1,7 @@
+<launch>
+	<!-- KACANOPEN -->
+	<!--node name="restart_can_socket" pkg="ros_eposmcd_driver" type="restart_can_socket.sh" / -->
+	<node name="callback_test_problem" pkg="kacanopen" type="kacanopen_callback_test_problem" output="screen">
+		<param name="acceleration" type="int" value="100000" />
+	</node>
+</launch>

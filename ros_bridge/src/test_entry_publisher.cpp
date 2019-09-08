@@ -29,52 +29,67 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
  
-#include "bridge.h"
+#include "test_entry_publisher.h"
+#include "utils.h"
 #include "logger.h"
-#include "sdo_error.h"
 #include "ros/ros.h"
+#include "sdo_error.h"
 
-#include <future>
+#include "std_msgs/UInt8.h"
+#include "std_msgs/UInt16.h"
+#include "std_msgs/UInt32.h"
+#include "std_msgs/Int8.h"
+#include "std_msgs/Int16.h"
+#include "std_msgs/Int32.h"
+#include "std_msgs/Bool.h"
+#include "std_msgs/String.h"
+
+#include <string>
 
 namespace kaco {
 
-void Bridge::add_publisher(std::shared_ptr<Publisher> publisher, double loop_rate) {
-	m_publishers.push_back(publisher);
-	publisher->advertise();
+TestEntryPublisher::TestEntryPublisher(uint8_t device, const std::string& entry_name, const ReadAccessMethod access_method)
+	: m_device(device), m_entry_name(entry_name), m_access_method(access_method)
+{
 
-	m_futures.push_front(
-		std::async(std::launch::async, [publisher, loop_rate, this](){
-			ros::Rate rate(loop_rate);
-			while(ros::ok()) {
-				publisher->publish();
-				rate.sleep();
-			}
-		})
-	);
+	uint8_t node_id = device;
+	m_device_prefix = "device" + std::to_string(node_id) + "/";
+	// no spaces and '-' allowed in ros names
+	m_name = Utils::escape(entry_name);
 }
 
-std::vector<std::shared_ptr<Publisher>> Bridge::get_publishers() {
-	return m_publishers;
+void TestEntryPublisher::advertise() {
+
+	std::string topic = m_device_prefix+"get_"+m_name;
+	DEBUG_LOG("Advertising "<<topic);
+	ros::NodeHandle nh;
+
+	m_publisher = nh.advertise<std_msgs::UInt8>(topic, queue_size);
+	m_publish_state = true;
 }
 
-void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
-	m_subscribers.push_back(subscriber);
-	subscriber->advertise();
+void TestEntryPublisher::set_publish_state(bool state) {
+	m_publish_state = state;
 }
 
-void Bridge::run() {
-	// spinner with problems - multithread
-	ros::AsyncSpinner spinner(0);
-	spinner.start();
-	ros::waitForShutdown();
+void TestEntryPublisher::publish() {
 
-	// working spinner - no threads
-	// ros::Rate r(30); // 30 hz
-	// while (ros::ok())
-	// {
-	//   ros::spinOnce();
-	//   r.sleep();
-	// }
+	if (!m_publish_state) {
+		WARN("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+		return;
+	}
+
+	try {
+
+		std_msgs::UInt8 msg;
+		msg.data = 123; // auto cast!
+		m_publisher.publish(msg);
+		
+	} catch (const sdo_error& error) {
+		// TODO: only catch timeouts?
+		ERROR("Exception in EntryPublisher::publish(): "<<error.what());
+	}
+
 }
 
 } // end namespace kaco
