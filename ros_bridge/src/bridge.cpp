@@ -63,18 +63,9 @@ void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
 }
 
 void Bridge::run() {
-	// spinner with problems - multithread
 	ros::AsyncSpinner spinner(0);
 	spinner.start();
 	ros::waitForShutdown();
-
-	// working spinner - no threads
-	// ros::Rate r(30); // 30 hz
-	// while (ros::ok())
-	// {
-	//   ros::spinOnce();
-	//   r.sleep();
-	// }
 }
 
 } // end namespace kaco

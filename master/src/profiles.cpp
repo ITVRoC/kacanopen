@@ -39,8 +39,28 @@ namespace kaco {
 			(uint16_t) 402,
 			{
 				{
+					"initialise_motor",
+					[](Device& device,const Value&) -> Value {
+						//device.set_entry("profile_acceleration", (uint32_t) 100000);
+						//device.set_entry("profile_deceleration", (uint32_t) 100000);
+						//device.set_entry("profile_velocity", (uint32_t) 25000);
+						device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+						device.set_entry("controlword", (uint16_t) 0x0006); // shutdown
+						device.set_entry("controlword", (uint16_t) 0x0007); // switch on
+						return Value(); // invalid value (return value not needed)
+					}
+				},
+				{
+					"enable_motor",
+					[](Device& device,const Value&) -> Value {
+						device.set_entry("controlword", (uint16_t) 0x000F); // enable operation
+						return Value(); // invalid value (return value not needed)
+					}
+				},
+				{
 					"enable_operation",
 					[](Device& device,const Value&) -> Value {
+						device.set_entry("controlword", (uint16_t) 0x0000);
 						device.set_entry("controlword", (uint16_t) 0x0006); // shutdown
 						device.set_entry("controlword", (uint16_t) 0x0007); // switch on
 						device.set_entry("controlword", (uint16_t) 0x000F); // enable operation
@@ -81,7 +101,8 @@ namespace kaco {
 					"set_target_velocity",
 					[](Device& device,const Value& target_velocity) -> Value {
 						DEBUG_LOG("Set target vel to "<<target_velocity);
-						device.set_entry("Target position", target_velocity);
+						device.set_entry("Target Velocity", target_velocity);
+						device.set_entry("controlword", static_cast <uint16_t> (0x1F));
 						return Value();
 					}
 				}

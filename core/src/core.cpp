@@ -242,6 +242,8 @@ void Core::received_message(const Message& message) {
 
 void Core::send(const Message& message) {
 	
+	DEBUG_LOG_EXHAUSTIVE("Before locking mutex");
+
 	if (m_lock_send) {
 		m_send_mutex.lock();
 	}
@@ -253,6 +255,8 @@ void Core::send(const Message& message) {
 	if (m_lock_send) {
 		m_send_mutex.unlock();
 	}
+
+	DEBUG_LOG_EXHAUSTIVE("Unlocking mutex");
 
 }
 

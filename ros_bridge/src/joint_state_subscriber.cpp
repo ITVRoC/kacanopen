@@ -121,8 +121,10 @@ namespace kaco {
 
         ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
         //ROS_INFO_STREAM(msg.velocity[0]);
-        m_device.set_entry("Target Velocity", static_cast < int32_t > (msg.velocity[0]));
-        m_device.set_entry("Controlword", static_cast < uint16_t > (0x1F));
+        //m_device.set_entry("Target Velocity", static_cast < int32_t > (msg.velocity[0]));
+        //m_device.set_entry("Controlword", static_cast < uint16_t > (0x1F));
+
+        m_device.execute("set_target_velocity", static_cast < int32_t > (msg.velocity[0]));
 
       }
     } catch (const sdo_error & error) {

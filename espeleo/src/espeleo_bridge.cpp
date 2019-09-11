@@ -51,7 +51,7 @@
 
 kaco::Master master;
 kaco::Bridge bridge;
-int acceleration = 100000;
+int acceleration = 50000;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
@@ -90,6 +90,7 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
 
 			PRINT("Enable operation");
+			//device.execute("initialise_motor");
 			device.execute("enable_operation");
 		}
 	}
@@ -122,7 +123,7 @@ int main(int argc, char* argv[]) {
 	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
 		<<"uint8 messages for each connected digital IO device (CiA 401).");
 
-	const double loop_rate = 1; // [Hz]
+	const double loop_rate = 5; // [Hz]
 
 	
 	if (!master.start(busname, baudrate)) {
@@ -169,6 +170,32 @@ int main(int argc, char* argv[]) {
 
 			found = true;
 
+			// //PDOs for General Control word (0x200 + Device id)
+			// //PDOs for Profile Position (0x300 + Device id)
+			// //PDOs for Profile Velocity (0x400 + Device id)
+			// //PDOs for Profile Torque (0x500 + Device id)
+			// std::vector<kaco::Mapping> mapping_200, mapping_300, mapping_400, mapping_500;
+			// kaco::Mapping mapping_cw, mapping_target_pos, mapping_target_vel, mapping_target_torq;
+			// mapping_cw.entry_name = "Controlword";
+			// mapping_cw.offset = 0;
+			// mapping_200.push_back(mapping_cw);
+			// mapping_300.push_back(mapping_cw);
+			// mapping_400.push_back(mapping_cw);
+			// mapping_500.push_back(mapping_cw);
+			// mapping_target_pos.entry_name = "Target Position";
+			// mapping_target_pos.offset = 2;
+			// mapping_300.push_back(mapping_target_pos);
+			// mapping_target_vel.entry_name = "Target Velocity";
+			// mapping_target_vel.offset = 2;
+			// mapping_400.push_back(mapping_target_vel);
+			// mapping_target_torq.entry_name = "Target Torque";
+			// mapping_target_torq.offset = 2;
+			// mapping_500.push_back(mapping_target_torq);
+			// device.add_transmit_pdo_mapping(0x27F, mapping_200);
+			// //device.add_transmit_pdo_mapping(0x37F, mapping_300);
+			// device.add_transmit_pdo_mapping(0x47F, mapping_400);
+			// //device.add_transmit_pdo_mapping(0x57F, mapping_500);
+
 			PRINT("Set velocity mode");
 			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
 
@@ -176,6 +203,7 @@ int main(int argc, char* argv[]) {
 			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
 
 			PRINT("Enable operation");
+			//device.execute("initialise_motor");
 			device.execute("enable_operation");
 
 			auto joint_state_pub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
