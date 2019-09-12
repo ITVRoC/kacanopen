@@ -51,13 +51,13 @@
 
 kaco::Master master;
 kaco::Bridge bridge;
-int acceleration = 50000;
+int acceleration = 20000;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
 	
 	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();
-	for(int i=0; i < pub_list.size(); ++i){
+	for(unsigned int i=0; i < pub_list.size(); ++i){
 		pub_list[i]->set_publish_state(false);
 	}
 

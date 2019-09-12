@@ -87,13 +87,6 @@ namespace kaco {
 		/// Callback "received ROS JointState message"
 		void receive(const sensor_msgs::JointState& msg);
 
-
-		// TEST DELETE ME
-		void receiveTest(const sensor_msgs::JointState& msg);
-
-
-
-
 		/// converts radiant to "Target position" value from CanOpen using m_position_0_degree and m_position_360_degree
 		int32_t rad_to_pos(double pos) const;
 
@@ -109,7 +102,6 @@ namespace kaco {
 		bool m_initialized;
 
 		ros::Subscriber m_subscriber;
-		ros::Subscriber m_subscriber1;
 
 	};
 

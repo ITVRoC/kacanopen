@@ -41,8 +41,8 @@ namespace kaco {
 
   JointStateSubscriber::JointStateSubscriber(Device & device, int32_t position_0_degree,
       int32_t position_360_degree, std::string topic_name): m_device(device), m_position_0_degree(position_0_degree),
-    m_position_360_degree(position_360_degree), m_topic_name(topic_name),
-    m_initialized(false) {
+      m_position_360_degree(position_360_degree), m_topic_name(topic_name),
+      m_initialized(false) {
 
       const uint16_t profile = device.get_device_profile_number();
 
@@ -87,18 +87,11 @@ namespace kaco {
     m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
     //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
     m_initialized = true;
-
-    // Test callback - DELETEME
-    //m_subscriber1 = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receiveTest, this, ros::TransportHints().tcpNoDelay());
-
   }
 
   void JointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
 
-  	ROS_INFO("JointStateSubscriber receive -- called %s", m_topic_name.c_str());
     try {
-      ROS_DEBUG_STREAM("Operation Mode " << operation_mode_);
-      //ROS_DEBUG_STREAM("MSG:" << msg);
 
       if (operation_mode_ == PROFILE_POSITION) {
       	if(msg.position.size() <= 0){
@@ -106,40 +99,27 @@ namespace kaco {
       		return;
       	}
 
-        const int32_t pos = rad_to_pos(msg.position[0]);
-
-        ROS_INFO_STREAM("Received JointState message [Position]");
-        ROS_INFO_STREAM(pos);
-        ROS_INFO_STREAM(msg.position[0]);
+        //ROS_INFO_STREAM("Received JointState message [Position] " << msg.position[0]);
         m_device.execute("set_target_position", static_cast < int32_t > (msg.position[0]));
       } 
+
       else if (operation_mode_ == PROFILE_VELOCITY) {
       	if(msg.velocity.size() <= 0){
       		ROS_WARN("subscriber %s received EMPTY JointState velocity", m_topic_name.c_str());
       		return;
       	}
 
-        ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
-        //ROS_INFO_STREAM(msg.velocity[0]);
         //m_device.set_entry("Target Velocity", static_cast < int32_t > (msg.velocity[0]));
         //m_device.set_entry("Controlword", static_cast < uint16_t > (0x1F));
 
+        //ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
         m_device.execute("set_target_velocity", static_cast < int32_t > (msg.velocity[0]));
-
       }
+
     } catch (const sdo_error & error) {
       // TODO: only catch timeouts?
       ERROR("Exception in JointStateSubscriber::receive(): " << error.what());
     }
-
-  }
-
-
-  void JointStateSubscriber::receiveTest(const sensor_msgs::JointState & msg) {
-
-    ROS_INFO_STREAM("receiveTest");
-    ROS_INFO_STREAM(msg);
-    
 
   }
 
