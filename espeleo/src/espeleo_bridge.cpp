@@ -51,7 +51,8 @@
 
 kaco::Master master;
 kaco::Bridge bridge;
-int acceleration = 20000;
+int acceleration = 10000;
+int deceleration = 40000;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
@@ -75,8 +76,9 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 		device.load_dictionary_from_library();
 
 		const kaco::Value& accel((uint32_t)acceleration);
+		const kaco::Value& decel((uint32_t)deceleration);
 		device.set_entry("profile_acceleration", accel);
-		device.set_entry("profile_deceleration", accel);
+		device.set_entry("profile_deceleration", decel);
 
 		const auto profile = device.get_device_profile_number();
 		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
@@ -150,6 +152,7 @@ int main(int argc, char* argv[]) {
   	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
 
 	ros::param::get("~acceleration", acceleration);
+	ros::param::get("~deceleration", deceleration);
 
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {
@@ -160,8 +163,9 @@ int main(int argc, char* argv[]) {
 		device.load_dictionary_from_library();
 
 		const kaco::Value& accel((uint32_t)acceleration);
+		const kaco::Value& decel((uint32_t)deceleration);
 		device.set_entry("profile_acceleration", accel);
-		device.set_entry("profile_deceleration", accel);
+		device.set_entry("profile_deceleration", decel);
 
 		const auto profile = device.get_device_profile_number();
 		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
