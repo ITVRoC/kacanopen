@@ -75,6 +75,7 @@ namespace kaco {
 
 		/// \see interface Subscriber
 		void advertise() override;
+		void set_subscribe_state(bool state) override;
 
 	private:
 
@@ -107,6 +108,7 @@ namespace kaco {
 		int32_t m_position_360_degree;
 		std::string m_topic_name;
 		bool m_initialized;
+        bool m_subscribe_state;
 
 		ros::Subscriber m_subscriber;
 		ros::Subscriber m_subscriber1;

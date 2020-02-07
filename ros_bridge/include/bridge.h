@@ -65,6 +65,8 @@ namespace kaco {
 		void add_subscriber(std::shared_ptr<Subscriber> subscriber);
 
 		std::vector<std::shared_ptr<Publisher>> get_publishers();
+		std::vector<std::shared_ptr<Subscriber>> get_subscribers();
+
 	private:
 
 		static const bool debug = false;

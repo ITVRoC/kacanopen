@@ -43,6 +43,8 @@ namespace kaco {
 		/// method by yourself.
 		virtual void advertise() = 0;
 
+        virtual void set_subscribe_state(bool state) { };
+
 		// Virtual destructor must be defined!
 		virtual ~Subscriber() { }
 

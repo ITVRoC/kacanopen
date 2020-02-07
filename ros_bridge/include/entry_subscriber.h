@@ -64,6 +64,7 @@ namespace kaco {
 
 		/// \see interface Subscriber
 		void advertise() override;
+        void set_subscribe_state(bool state) override;
 
 	private:
 
@@ -90,6 +91,8 @@ namespace kaco {
 		std::string m_entry_name;
 		WriteAccessMethod m_access_method;
 		Type m_type;
+
+		bool m_subscribe_state;
 
 	};
 
