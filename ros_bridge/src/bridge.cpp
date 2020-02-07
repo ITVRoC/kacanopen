@@ -57,6 +57,10 @@ std::vector<std::shared_ptr<Publisher>> Bridge::get_publishers() {
 	return m_publishers;
 }
 
+std::vector<std::shared_ptr<Subscriber>> Bridge::get_subscribers() {
+    	return m_subscribers;
+}
+
 void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
 	m_subscribers.push_back(subscriber);
 	subscriber->advertise();

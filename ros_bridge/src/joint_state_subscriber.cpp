@@ -87,11 +87,16 @@ namespace kaco {
     m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
     //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
     m_initialized = true;
+    m_subscribe_state = true;
   }
 
   void JointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
 
     try {
+        if (!m_subscribe_state) {
+            WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+            return;
+        }
 
       if (operation_mode_ == PROFILE_POSITION) {
       	if(msg.position.size() <= 0){
@@ -120,7 +125,6 @@ namespace kaco {
       // TODO: only catch timeouts?
       ERROR("Exception in JointStateSubscriber::receive(): " << error.what());
     }
-
   }
 
   int32_t JointStateSubscriber::rad_to_pos(double rad) const {
@@ -132,6 +136,10 @@ namespace kaco {
     const double result = ((p / (2 * pi())) * dist) + min;
     return (int32_t) result;
 
+  }
+
+  void JointStateSubscriber::set_subscribe_state(bool state) {
+      m_subscribe_state = state;
   }
 
 } // end namespace kaco

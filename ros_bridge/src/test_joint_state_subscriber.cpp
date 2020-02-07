@@ -64,6 +64,7 @@ namespace kaco {
     m_subscriber = nh.subscribe(m_topic_name, queue_size, & TestJointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
     //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
     m_initialized = true;
+    m_subscribe_state = true;
 
     // Test callback - DELETEME
     //m_subscriber1 = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receiveTest, this, ros::TransportHints().tcpNoDelay());
@@ -71,6 +72,11 @@ namespace kaco {
   }
 
   void TestJointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
+
+      if (!m_subscribe_state) {
+          WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+          return;
+      }
     ROS_INFO("JointStateSubscriber receive -- called %s", m_topic_name.c_str());
     // ROS_INFO("SLEEPING...");
     // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
@@ -86,6 +92,10 @@ namespace kaco {
     const double result = ((p / (2 * pi())) * dist) + min;
     return (int32_t) result;
 
+  }
+
+  void TestJointStateSubscriber::set_subscribe_state(bool state) {
+      m_subscribe_state = state;
   }
 
 } // end namespace kaco

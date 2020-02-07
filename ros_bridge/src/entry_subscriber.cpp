@@ -85,10 +85,16 @@ void EntrySubscriber::advertise() {
 		default:
 			ERROR("[EntryPublisher::advertise] Invalid entry type.")
 	}
-
+    m_subscribe_state = true;
 }
 
 void EntrySubscriber::receive_uint8(const std_msgs::UInt8& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -99,6 +105,12 @@ void EntrySubscriber::receive_uint8(const std_msgs::UInt8& msg) {
 }
 
 void EntrySubscriber::receive_uint16(const std_msgs::UInt16& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -109,6 +121,12 @@ void EntrySubscriber::receive_uint16(const std_msgs::UInt16& msg) {
 }
 
 void EntrySubscriber::receive_uint32(const std_msgs::UInt32& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -119,6 +137,12 @@ void EntrySubscriber::receive_uint32(const std_msgs::UInt32& msg) {
 }
 
 void EntrySubscriber::receive_int8(const std_msgs::Int8& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -129,6 +153,12 @@ void EntrySubscriber::receive_int8(const std_msgs::Int8& msg) {
 }
 
 void EntrySubscriber::receive_int16(const std_msgs::Int16& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -139,6 +169,12 @@ void EntrySubscriber::receive_int16(const std_msgs::Int16& msg) {
 }
 
 void EntrySubscriber::receive_int32(const std_msgs::Int32& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -149,6 +185,12 @@ void EntrySubscriber::receive_int32(const std_msgs::Int32& msg) {
 }
 
 void EntrySubscriber::receive_boolean(const std_msgs::Bool& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -159,6 +201,12 @@ void EntrySubscriber::receive_boolean(const std_msgs::Bool& msg) {
 }
 
 void EntrySubscriber::receive_string(const std_msgs::String& msg) {
+
+    if (!m_subscribe_state) {
+        WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+        return;
+    }
+
 	try {
 		DEBUG_LOG("Recieved msg: "<<msg.data);
 		m_device.set_entry(m_entry_name, msg.data, m_access_method); // auto cast to Value!
@@ -166,6 +214,11 @@ void EntrySubscriber::receive_string(const std_msgs::String& msg) {
 		// TODO: only catch timeouts?
 		ERROR("Exception in EntrySubscriber::receive_string(): "<<error.what());
 	}
+}
+
+
+void EntrySubscriber::set_subscribe_state(bool state) {
+    m_subscribe_state = state;
 }
 
 } // end namespace kaco
