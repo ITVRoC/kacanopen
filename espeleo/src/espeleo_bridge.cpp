@@ -53,10 +53,12 @@ kaco::Master master;
 kaco::Bridge bridge;
 int acceleration = 10000;
 int deceleration = 40000;
+bool reset_motors_flag = false;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
-	
+	ros::param::set("/reset_motors_flag", true); //flag to stop espeleo_locomotion to guarantee the motors not to crash (fault state)
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));  //sleeping to guarantee that all publishing in motors are done
 	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();
 	for(unsigned int i=0; i < pub_list.size(); ++i){
 		pub_list[i]->set_publish_state(false);
@@ -71,6 +73,8 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 	ROS_INFO("AWAKE...");
 
 	for (size_t i=0; i < master.num_devices(); ++i) {
+
+		ROS_INFO("Entrando");
 		kaco::Device& device = master.get_device(i);
 		device.start();
 		device.load_dictionary_from_library();
@@ -82,9 +86,8 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 
 		const auto profile = device.get_device_profile_number();
 		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
-		
 		if (profile==402) {
-
+			ROS_INFO("Erro aqui");
 			PRINT("Set velocity mode");
 			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
 
@@ -108,7 +111,7 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 
   	res.success = true;
   	ROS_INFO("sending back response: [%d]", res.success);
-
+	ros::param::set("/reset_motors_flag", false); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
   	return true;
 }
 
