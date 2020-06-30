@@ -57,11 +57,16 @@ bool reset_motors_flag = false;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
-	ros::param::set("/reset_motors_flag", true); //flag to stop espeleo_locomotion to guarantee the motors not to crash (fault state)
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));  //sleeping to guarantee that all publishing in motors are done
+	//ros::param::set("/reset_motors_flag", true); //flag to stop espeleo_locomotion to guarantee the motors not to crash (fault state)
+	//std::this_thread::sleep_for(std::chrono::milliseconds(500));  //sleeping to guarantee that all publishing in motors are done
 	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();
+	std::vector<std::shared_ptr<kaco::Subscriber>> sub_list = bridge.get_subscribers();
 	for(unsigned int i=0; i < pub_list.size(); ++i){
 		pub_list[i]->set_publish_state(false);
+	}
+
+	for(unsigned int i=0; i < sub_list.size(); ++i){
+	    sub_list[i]->set_subscribe_state(false);
 	}
 
 	ROS_INFO("resetting CAN communication and nodes");
@@ -107,6 +112,7 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 	for(std::size_t i=0; i<pub_list.size(); ++i){
 		pub_list[i]->advertise();
 		pub_list[i]->set_publish_state(true);
+		sub_list[i]->set_subscribe_state(true);
 	}
 
   	res.success = true;
