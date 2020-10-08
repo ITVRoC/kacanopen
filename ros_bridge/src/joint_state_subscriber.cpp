@@ -66,6 +66,9 @@ namespace kaco {
       } else if (operation_mode == Profiles::constants.at(402).at("profile_velocity_mode")) {
         operation_mode_ = PROFILE_VELOCITY;
         PRINT("Subscriber for profile_velocity_mode");
+      } else if (operation_mode == Profiles::constants.at(402).at("current_mode")) {
+        operation_mode_ = CURRENT_MODE;
+        PRINT("Subscriber for current_mode");
       } else {
 
         throw std::runtime_error("[JointStatePublisher] Only position mode supported yet."
@@ -76,6 +79,8 @@ namespace kaco {
         uint8_t node_id = device.get_node_id();
         m_topic_name = "device" + std::to_string(node_id) + "/set_joint_state";
       }
+
+      motor_id = device.get_node_id();
 
     }
 
@@ -114,11 +119,41 @@ namespace kaco {
       		return;
       	}
 
-        //m_device.set_entry("Target Velocity", static_cast < int32_t > (msg.velocity[0]));
-        //m_device.set_entry("Controlword", static_cast < uint16_t > (0x1F));
+	        //ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
+	    m_device.execute("set_target_velocity", static_cast < int32_t > (msg.velocity[0]));
+      }
 
-        //ROS_INFO_STREAM("Received JointState message [Velocity] " << msg.velocity[0]);
-        m_device.execute("set_target_velocity", static_cast < int32_t > (msg.velocity[0]));
+      else if (operation_mode_ == CURRENT_MODE) {
+      	if(msg.effort.size() <= 0){
+      		ROS_WARN("subscriber %s received EMPTY JointState effort", m_topic_name.c_str());
+      		return;
+      	}
+
+      	double current_bias = 0.0;
+      	if(motor_id == 1){
+      		current_bias = 130.0;
+      	}
+      	else if(motor_id == 2){
+      		current_bias = -83.0;
+      	}
+      	else if(motor_id == 3){
+      		current_bias = 86.0;
+      	}
+      	else if(motor_id == 4){
+      		current_bias = 40.0;
+      	}
+      	else if(motor_id == 5){
+      		current_bias = 300.0;
+      	}
+      	else if(motor_id == 6){
+      		current_bias = 70.0;
+      	}
+      	else{
+      		current_bias = 0.0;
+      	}
+
+  		m_device.execute("set_target_current", static_cast < int16_t > (torque_to_current(msg.effort[0]) + current_bias));
+    	// m_device.execute("set_target_current", static_cast < int16_t > (msg.effort[0]));
       }
 
     } catch (const sdo_error & error) {
@@ -135,6 +170,22 @@ namespace kaco {
     const double dist = max - min;
     const double result = ((p / (2 * pi())) * dist) + min;
     return (int32_t) result;
+
+  }
+
+
+  int16_t JointStateSubscriber::torque_to_current(double torque) const {
+  	// 0.0259 Nm/A ---> mA = T/0.0000259
+
+  	const double ratio = 0.0000259;
+    double result = torque/ratio;
+    if (result > 2700){
+    	result = 2700.0;
+    }
+    else if (result < -2700){
+    	result = -2700.0;
+    }
+    return (int16_t) result;
 
   }
 

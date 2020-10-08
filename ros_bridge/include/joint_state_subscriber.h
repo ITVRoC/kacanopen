@@ -57,7 +57,8 @@ namespace kaco {
       NONE,
       PROFILE_POSITION,
       PROFILE_VELOCITY,
-      HOMING
+      HOMING,
+      CURRENT_MODE
     };
 	public:
 
@@ -78,6 +79,8 @@ namespace kaco {
 
 		void set_subscribe_state(bool state) override;
 
+
+
 	private:
 
 		static const bool debug = false;
@@ -92,12 +95,16 @@ namespace kaco {
 		/// converts radiant to "Target position" value from CanOpen using m_position_0_degree and m_position_360_degree
 		int32_t rad_to_pos(double pos) const;
 
+		/// converts "torque to current"
+		int16_t torque_to_current(double torque) const;
+
 		/// constant PI
 		static constexpr double pi() { return std::acos(-1); }
     OP_MODE operation_mode_;
 
 
 		Device& m_device;
+		double motor_id;
 		int32_t m_position_0_degree;
 		int32_t m_position_360_degree;
 		std::string m_topic_name;
