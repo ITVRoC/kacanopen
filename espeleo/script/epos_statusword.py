@@ -35,7 +35,7 @@ word_status_code = {
 	15: "position referenced to home position"
 }
 
-sample_statuses = [1847, 823, 5943]
+sample_statuses = [1847, 823, 5943, 5896]
 
 for stat_word in sample_statuses:
 	print("statusWord:{}".format(stat_word))

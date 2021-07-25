@@ -53,7 +53,8 @@ kaco::Master master;
 kaco::Bridge bridge;
 int acceleration = 10000;
 int deceleration = 40000;
-bool reset_motors_flag = false;
+// set the our desired heartbeat_interval time
+const uint16_t heartbeat_interval = 100;
 
 bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 {
@@ -69,20 +70,22 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 	    sub_list[i]->set_subscribe_state(false);
 	}
 
+    for (size_t i=0; i < master.num_devices(); ++i) {
+        kaco::Device& device = master.get_device(i);
+        device.stop_request_heartbeat();
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 	ROS_INFO("resetting CAN communication and nodes");
 	master.core.nmt.reset_communication_all_nodes();
 	master.core.nmt.reset_all_nodes();
 
-	ROS_INFO("SLEEPING...");
-	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-	ROS_INFO("AWAKE...");
+	//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
 	for (size_t i=0; i < master.num_devices(); ++i) {
 
-		ROS_INFO("Entrando");
 		kaco::Device& device = master.get_device(i);
-		device.start();
-		device.load_dictionary_from_library();
 
 		const kaco::Value& accel((uint32_t)acceleration);
 		const kaco::Value& decel((uint32_t)deceleration);
@@ -92,28 +95,40 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 		const auto profile = device.get_device_profile_number();
 		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
 		if (profile==402) {
-			ROS_INFO("Erro aqui");
-			PRINT("Set velocity mode");
+			//PRINT("Set velocity mode");
 			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
 
 			// PRINT("Set position mode");
 			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
 
-			PRINT("Enable operation");
+			//PRINT("Enable operation");
 			//device.execute("initialise_motor");
 			device.execute("enable_operation");
 		}
+
+        device.load_dictionary_from_library();
+        device.start();
 	}
 
 	ROS_INFO("SLEEPING...");
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	ROS_INFO("AWAKE...");
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	ROS_INFO_STREAM("AWAKE... pub list size:" << pub_list.size());
 
-	for(std::size_t i=0; i<pub_list.size(); ++i){
+    for(unsigned int i=0; i < pub_list.size(); ++i){
 		pub_list[i]->advertise();
 		pub_list[i]->set_publish_state(true);
-		sub_list[i]->set_subscribe_state(true);
 	}
+
+    for(unsigned int i=0; i < sub_list.size(); ++i){
+        sub_list[i]->advertise();
+        sub_list[i]->set_subscribe_state(true);
+    }
+
+    // enable node guard heartbeat
+    for (size_t i=0; i < master.num_devices(); ++i) {
+        kaco::Device& device = master.get_device(i);
+        device.request_heartbeat(device.get_node_id(), heartbeat_interval, true, kaco::NMT::State::operational, true);
+    }
 
   	res.success = true;
   	ROS_INFO("sending back response: [%d]", res.success);
@@ -131,8 +146,8 @@ int main(int argc, char* argv[]) {
 	// "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
 	const std::string baudrate = "1M";
 
-	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
-		<<"uint8 messages for each connected digital IO device (CiA 401).");
+    //	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
+    //		<<"uint8 messages for each connected digital IO device (CiA 401).");
 
 	const double loop_rate = 5; // [Hz]
 
@@ -167,9 +182,12 @@ int main(int argc, char* argv[]) {
 	for (size_t i=0; i<master.num_devices(); ++i) {
 
 		kaco::Device& device = master.get_device(i);
-		device.start();
+        device.start();
 
-		device.load_dictionary_from_library();
+        device.load_dictionary_from_library();
+
+        // enable node guard heartbeat
+        device.request_heartbeat(device.get_node_id(), heartbeat_interval, true, kaco::NMT::State::operational, true);
 
 		const kaco::Value& accel((uint32_t)acceleration);
 		const kaco::Value& decel((uint32_t)deceleration);
@@ -231,7 +249,6 @@ int main(int argc, char* argv[]) {
 			auto joint_state_sub = std::make_shared<kaco::JointStateSubscriber>(device, 0, 350000);
 			bridge.add_subscriber(joint_state_sub);
 		}
-
 	}
 
 	if (!found) {

@@ -10,7 +10,7 @@ set(BUILD_DRIVERS "" CACHE STRING "Semicolon-separated list of additional CAN dr
 
 option(BUILD_ALL_DRIVERS "Build all available drivers." OFF)
 
-option(EXHAUSTIVE_DEBUGGING "Enable exhaustive debugging." OFF)
+option(EXHAUSTIVE_DEBUGGING "Enable exhaustive debugging.")
 
 option(NO_ROS "Exclude anything depending on ROS" OFF)
 

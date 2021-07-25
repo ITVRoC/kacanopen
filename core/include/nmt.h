@@ -69,6 +69,16 @@ namespace kaco {
 			reset_communication = 0x82
 		};
 
+        /// NMT states
+        enum class State : uint8_t {
+            initializing = 0x00,
+            stopped = 0x04,
+            operational = 0x05,  // normal heartbeat
+            sleep = 0x50,
+            standby = 0x60,
+            preoperational = 0x7F
+        };
+
 		/// Constructor.
 		/// \param core Reference to the Core
 		NMT(Core& core);

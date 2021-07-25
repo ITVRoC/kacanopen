@@ -118,4 +118,18 @@ namespace kaco {
 		ON_CHANGE
 	};
 
+    enum class TPDO_NO {
+        TPDO_1 = 0x180,
+        TPDO_2 = 0x280,
+        TPDO_3 = 0x380,
+        TPDO_4 = 0x480
+    };
+
+    enum class RPDO_NO {
+        RPDO_1 = 0x200,
+        RPDO_2 = 0x300,
+        RPDO_3 = 0x400,
+        RPDO_4 = 0x500
+    };
+
 } // end namespace kaco

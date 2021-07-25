@@ -104,7 +104,7 @@ void JointStatePublisher::publish() {
 		}
 
 		if (!m_publish_state) {
-			WARN("[JointStatePublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+            ROS_WARN_STREAM_ONCE("[JointStatePublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
 			return;
 		}
 

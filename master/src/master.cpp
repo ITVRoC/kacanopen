@@ -90,10 +90,10 @@ void Master::device_alive_callback(const uint8_t node_id) {
 	if (!m_device_alive.test(node_id)) {
 		m_device_alive.set(node_id);
 		m_devices.emplace_back(new Device(core, node_id));
-	} else {
-		WARN("Device with node ID "<<node_id<<" already exists. Ignoring...");
 	}
-	
+//	else {
+//		WARN("Device with node ID " << node_id << " already exists. Ignoring...");
+//	}
 }
 
 
