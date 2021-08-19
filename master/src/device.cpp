@@ -513,6 +513,8 @@ const Value Device::m_dummy_value = Value();
             memset(request_heartbeat.data, 0, sizeof(request_heartbeat.data));
         }
 
+		PRINT("[request_heartbeat] activated for node_id:" << std::to_string(node_id));
+
         while (!terminating_) {
             m_core.send(request_heartbeat);
             std::this_thread::sleep_for(std::chrono::milliseconds(heartbeat_interval));
@@ -539,6 +541,7 @@ const Value Device::m_dummy_value = Value();
                 request_heartbeat_thread_->join();
                 request_heartbeat_thread_ = std::shared_ptr<std::thread>(nullptr);
             }
+			WARN("[request_heartbeat] terminated");
         }
         terminating_ = false;
     }

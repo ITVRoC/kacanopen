@@ -183,7 +183,7 @@ bool EDSReader::parse_var(const std::string& section, uint16_t index, uint8_t su
 
 		while (m_name_to_address.count(var_name)>0) {
 
-			WARN("[EDSReader::parse_var] Entry "<<var_name<<" already exists. Adding or increasing counter.");
+			//WARN("[EDSReader::parse_var] Entry "<<var_name<<" already exists. Adding or increasing counter.");
 
 			try {
 				std::smatch matches;

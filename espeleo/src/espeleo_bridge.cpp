@@ -56,10 +56,7 @@ int deceleration = 40000;
 // set the our desired heartbeat_interval time
 const uint16_t heartbeat_interval = 100;
 
-bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
-{
-	//ros::param::set("/reset_motors_flag", true); //flag to stop espeleo_locomotion to guarantee the motors not to crash (fault state)
-	//std::this_thread::sleep_for(std::chrono::milliseconds(500));  //sleeping to guarantee that all publishing in motors are done
+bool reset_motors(){
 	std::vector<std::shared_ptr<kaco::Publisher>> pub_list = bridge.get_publishers();
 	std::vector<std::shared_ptr<kaco::Subscriber>> sub_list = bridge.get_subscribers();
 	for(unsigned int i=0; i < pub_list.size(); ++i){
@@ -70,21 +67,25 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 	    sub_list[i]->set_subscribe_state(false);
 	}
 
-    for (size_t i=0; i < master.num_devices(); ++i) {
+	// disable node guard heartbeat
+	for (size_t i=0; i < master.num_devices(); ++i) {
         kaco::Device& device = master.get_device(i);
         device.stop_request_heartbeat();
     }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 	ROS_INFO("resetting CAN communication and nodes");
 	master.core.nmt.reset_communication_all_nodes();
 	master.core.nmt.reset_all_nodes();
 
-	//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	std::this_thread::sleep_for(std::chrono::milliseconds(400));
+
+	// enable node guard heartbeat
+    for (size_t i=0; i < master.num_devices(); ++i) {
+        kaco::Device& device = master.get_device(i);
+        device.request_heartbeat(device.get_node_id(), heartbeat_interval, true, kaco::NMT::State::operational, true);
+    }
 
 	for (size_t i=0; i < master.num_devices(); ++i) {
-
 		kaco::Device& device = master.get_device(i);
 
 		const kaco::Value& accel((uint32_t)acceleration);
@@ -92,22 +93,11 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 		device.set_entry("profile_acceleration", accel);
 		device.set_entry("profile_deceleration", decel);
 
-		const auto profile = device.get_device_profile_number();
-		PRINT("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "<<device.get_node_id()<<": "<<device.get_entry("manufacturer_device_name"));
-		if (profile==402) {
-			//PRINT("Set velocity mode");
-			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
-
-			// PRINT("Set position mode");
-			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
-
-			//PRINT("Enable operation");
-			//device.execute("initialise_motor");
-			device.execute("enable_operation");
-		}
-
-        device.load_dictionary_from_library();
+		device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+		device.execute("enable_operation");
         device.start();
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
 	ROS_INFO("SLEEPING...");
@@ -120,20 +110,16 @@ bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
 	}
 
     for(unsigned int i=0; i < sub_list.size(); ++i){
-        sub_list[i]->advertise();
         sub_list[i]->set_subscribe_state(true);
     }
+  	
+  	return true;
+}
 
-    // enable node guard heartbeat
-    for (size_t i=0; i < master.num_devices(); ++i) {
-        kaco::Device& device = master.get_device(i);
-        device.request_heartbeat(device.get_node_id(), heartbeat_interval, true, kaco::NMT::State::operational, true);
-    }
-
-  	res.success = true;
+bool reset_motors_srv_callback(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res){
+	res.success = reset_motors();
   	ROS_INFO("sending back response: [%d]", res.success);
 	ros::param::set("/reset_motors_flag", false); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
-  	return true;
 }
 
 int main(int argc, char* argv[]) {
@@ -160,7 +146,7 @@ int main(int argc, char* argv[]) {
 	master.core.nmt.reset_communication_all_nodes();
 	master.core.nmt.reset_all_nodes();
 
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	size_t num_devices_required = 1;
 	while (master.num_devices()<num_devices_required) {
 		ERROR("Number of devices found: " << master.num_devices() << ". Waiting for " << num_devices_required << ".");
@@ -173,7 +159,7 @@ int main(int argc, char* argv[]) {
 	ros::init(argc, argv, "canopen_bridge");
 
   	ros::NodeHandle n;
-  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
+  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors_srv_callback);
 
 	ros::param::get("~acceleration", acceleration);
 	ros::param::get("~deceleration", deceleration);
@@ -255,6 +241,8 @@ int main(int argc, char* argv[]) {
 		ERROR("This example is intended for use with a CiA 402 device but I can't find one.");
 		return EXIT_FAILURE;
 	}
+
+	reset_motors();
 
 	bridge.run();
 }
