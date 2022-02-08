@@ -88,6 +88,17 @@ namespace kaco {
 					}
 				},
 				{
+					"set_target_current",
+					[](Device& device,const Value& target_current) -> Value {
+						PRINT("Set target current to "<<target_current);
+						device.set_entry("CurrentMode Setting Value", target_current);
+						// device.set_entry("Current Actual Value", target_current);
+						//device.set_entry(static_cast <uint16_t> (0x2030), static_cast <uint16_t> (0x00), target_current);
+						// device.execute("controlword", static_cast <uint16_t> (0x1F));
+						return Value();
+					}
+				},
+				{
 					"set_target_position",
 					[](Device& device,const Value& target_position) -> Value {
 						DEBUG_LOG("Set target pos to "<<target_position);
@@ -119,6 +130,7 @@ namespace kaco {
 				{ "velocity_mode",				static_cast<int8_t>(2) },
 				{ "profile_velocity_mode",		static_cast<int8_t>(3) },
 				{ "torque_profile_mode",		static_cast<int8_t>(4) },
+				{ "current_mode",				static_cast<int8_t>(-3) },
 				{ "homing_mode",				static_cast<int8_t>(6) },
 				{ "interpolated_position_mode",	static_cast<int8_t>(7) },
 

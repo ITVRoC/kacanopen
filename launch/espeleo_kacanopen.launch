@@ -5,5 +5,7 @@
 		<param name="acceleration" type="int" value="10000" />
 		<param name="deceleration" type="int" value="20000" />
 		<param name="reset_motors_flag" type="bool" value="false" />
+		<param name="operation_mode" type="string" value="current"/>  
+		<!-- operantion mode types: "position", "velocity", "current" -->
 	</node>
 </launch>

@@ -54,7 +54,7 @@ SupportedObjects=3
 3=0x1018
 
 [OptionalObjects]
-SupportedObjects=130
+SupportedObjects=134
 1=0x1017
 2=0x1400
 3=0x1401
@@ -188,6 +188,7 @@ SupportedObjects=130
 131=0x1008
 132=0x1009
 133=0x100A
+134=0x2030
 
 [ManufacturerObjects]
 SupportedObjects=0
@@ -2378,3 +2379,9 @@ DataType=0x0005
 AccessType=rw
 PDOMapping=0
 
+[2030]
+ParameterName=CurrentMode Setting Value
+ObjectType=0x07
+DataType=0x0003
+AccessType=rw
+PDOMapping=1

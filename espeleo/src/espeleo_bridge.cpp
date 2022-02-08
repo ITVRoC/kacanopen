@@ -85,6 +85,9 @@ bool reset_motors(){
         device.request_heartbeat(device.get_node_id(), heartbeat_interval, true, kaco::NMT::State::operational, true);
     }
 
+    std::string op_mod = "";
+	ros::param::param<std::string>("/kacanopen_espeleo/operation_mode", op_mod, "velocity");
+
 	for (size_t i=0; i < master.num_devices(); ++i) {
 		kaco::Device& device = master.get_device(i);
 
@@ -93,7 +96,26 @@ bool reset_motors(){
 		device.set_entry("profile_acceleration", accel);
 		device.set_entry("profile_deceleration", decel);
 
-		device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+		// device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+		if(op_mod.compare("velocity") == 0){
+			PRINT("Set velocity mode");
+			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+		}
+		else if(op_mod.compare("position") == 0){
+			PRINT("Set position mode");
+			device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
+		}
+		else if(op_mod.compare("current") == 0){
+			PRINT("Set Current Mode");
+			device.set_entry("modes_of_operation", device.get_constant("current_mode"));
+		}
+		else{
+			PRINT("Select a available operation mode in launch file")
+			return 0;
+		}
+
+
+
 		device.execute("enable_operation");
         device.start();
 		
@@ -213,11 +235,28 @@ int main(int argc, char* argv[]) {
 			// device.add_transmit_pdo_mapping(0x47F, mapping_400);
 			// //device.add_transmit_pdo_mapping(0x57F, mapping_500);
 
-			PRINT("Set velocity mode");
-			device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+			// PRINT("Set velocity mode");
+			// device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
 
-			// PRINT("Set position mode");
-			// device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
+			std::string op_mod = "";
+			ros::param::param<std::string>("/kacanopen_espeleo/operation_mode", op_mod, "velocity");
+
+			if(op_mod.compare("velocity") == 0){
+				PRINT("Set velocity mode");
+				device.set_entry("modes_of_operation", device.get_constant("profile_velocity_mode"));
+			}
+			else if(op_mod.compare("position") == 0){
+				PRINT("Set position mode");
+				device.set_entry("modes_of_operation", device.get_constant("profile_position_mode"));
+			}
+			else if(op_mod.compare("current") == 0){
+				PRINT("Set Current Mode");
+				device.set_entry("modes_of_operation", device.get_constant("current_mode"));
+			}
+			else{
+				PRINT("Select a available operation mode in launch file")
+				return 0;
+			}
 
 			PRINT("Enable operation");
 			//device.execute("initialise_motor");
@@ -234,6 +273,13 @@ int main(int argc, char* argv[]) {
 
 			auto joint_state_sub = std::make_shared<kaco::JointStateSubscriber>(device, 0, 350000);
 			bridge.add_subscriber(joint_state_sub);
+
+
+			// if(op_mod.compare("current") == 0){
+			// 	device.execute("set_target_current", static_cast < int16_t > (1000.0));
+			// 	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+			// }
+
 		}
 	}
 
