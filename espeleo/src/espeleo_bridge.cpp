@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     //	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
     //		<<"uint8 messages for each connected digital IO device (CiA 401).");
 
-	const double loop_rate = 5; // [Hz]
+	const double loop_rate = 50; // [Hz]
 
 	
 	if (!master.start(busname, baudrate)) {
@@ -261,6 +261,7 @@ int main(int argc, char* argv[]) {
 			PRINT("Enable operation");
 			//device.execute("initialise_motor");
 			device.execute("enable_operation");
+
 
 			auto joint_state_pub = std::make_shared<kaco::JointStatePublisher>(device, 0, 350000);
 			bridge.add_publisher(joint_state_pub, loop_rate);

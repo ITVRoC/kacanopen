@@ -130,30 +130,17 @@ namespace kaco {
         }
 
         double current_bias = 0.0;
-        // if(motor_id == 1){
-        //  current_bias = 130.0;
-        // }
-        // else if(motor_id == 2){
-        //  current_bias = -83.0;
-        // }
-        // else if(motor_id == 3){
-        //  current_bias = 86.0;
-        // }
-        // else if(motor_id == 4){
-        //  current_bias = 40.0;
-        // }
-        // else if(motor_id == 5){
-        //  current_bias = 300.0;
-        // }
-        // else if(motor_id == 6){
-        //  current_bias = 70.0;
-        // }
-        // else{
-        //  current_bias = 0.0;
-        // }
+        
+        int value = msg.effort[0];
+        if (value > 3000){
+          value = 3000;
+        }
+        else if (value < -3000){
+          value = -3000;
+        }
 
       // m_device.execute("set_target_current", static_cast < int16_t > (torque_to_current(msg.effort[0]) + current_bias));
-      m_device.execute("set_target_current", static_cast < int16_t > (msg.effort[0]));
+      m_device.execute("set_target_current", static_cast < int16_t > (value));
       }
 
     } catch (const sdo_error & error) {

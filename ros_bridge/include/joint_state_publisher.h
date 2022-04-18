@@ -73,7 +73,7 @@ namespace kaco {
 		/// \param topic_name Custom topic name. Leave out for default.
 		/// \throws std::runtime_error if device is not CiA 402 compliant and in position_mode.
 		JointStatePublisher(Device& device, int32_t position_0_degree,
-			int32_t position_360_degree, const std::string& position_actual_field = "Position actual value", const std::string& velocity_actual_field = "Velocity actual value", const std::string& current_actual_field = "current_actual_value", const std::string& topic_name = "");
+			int32_t position_360_degree, const std::string& position_actual_field = "Position actual value", const std::string& velocity_actual_field = "Velocity actual value", const std::string& topic_name = "");
 
 		/// \see interface Publisher
 		void advertise() override;
@@ -104,7 +104,6 @@ namespace kaco {
 		int32_t m_position_360_degree;
 		std::string m_position_actual_field;
 		std::string m_velocity_actual_field;
-		std::string m_current_actual_field;
 		std::string m_topic_name;
 		bool m_initialized;
 		bool m_publish_state;

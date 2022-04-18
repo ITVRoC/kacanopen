@@ -43,9 +43,9 @@
 namespace kaco {
 
 JointStatePublisher::JointStatePublisher(Device& device, int32_t position_0_degree,
-	int32_t position_360_degree, const std::string& position_actual_field, const std::string& velocity_actual_field, const std::string& current_actual_field, const std::string& topic_name)
+	int32_t position_360_degree, const std::string& position_actual_field, const std::string& velocity_actual_field, const std::string& topic_name)
 	: m_device(device), m_position_0_degree(position_0_degree),
-		m_position_360_degree(position_360_degree), m_position_actual_field(position_actual_field), m_velocity_actual_field(velocity_actual_field), m_current_actual_field(current_actual_field), m_topic_name(topic_name), m_initialized(false)
+		m_position_360_degree(position_360_degree), m_position_actual_field(position_actual_field), m_velocity_actual_field(velocity_actual_field), m_topic_name(topic_name), m_initialized(false)
 {
 
 	const uint16_t profile = device.get_device_profile_number();
@@ -126,11 +126,6 @@ void JointStatePublisher::publish() {
 		js.velocity.resize(1);
 		const int32_t vel = m_device.get_entry(m_velocity_actual_field);
 		js.velocity[0] = vel;
-
-		js.effort.resize(1);
-		auto curr = m_device.get_entry(m_current_actual_field);
-		// std::cout<< typeid(curr).name() << "\n";
-		js.effort[0] = curr;
 
 		m_publisher.publish(js);
 
