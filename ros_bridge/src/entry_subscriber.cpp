@@ -32,7 +32,7 @@
 #include "entry_subscriber.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
 #include <string>
@@ -55,7 +55,7 @@ void EntrySubscriber::advertise() {
 	
 	std::string topic = m_device_prefix+"set_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
+	rclcpp::Node nh;
 
 	switch(m_type) {
 		case Type::uint8:
@@ -88,7 +88,7 @@ void EntrySubscriber::advertise() {
     m_subscribe_state = true;
 }
 
-void EntrySubscriber::receive_uint8(const std_msgs::UInt8& msg) {
+void EntrySubscriber::receive_uint8(const std_msgs::msg::UInt8& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");

@@ -5,7 +5,7 @@
 
 namespace kaco
 {
-KaCanopenMotor::KaCanopenMotor(Master *master, const std::string &name, ros::NodeHandle &nh, ros::NodeHandle &config_nh, hardware_interface::ActuatorStateInterface &asi, hardware_interface::VelocityActuatorInterface &avi, hardware_interface::PositionActuatorInterface &api)
+KaCanopenMotor::KaCanopenMotor(Master *master, const std::string &name, rclcpp::Node &nh, rclcpp::Node &config_nh, hardware_interface::ActuatorStateInterface &asi, hardware_interface::VelocityActuatorInterface &avi, hardware_interface::PositionActuatorInterface &api)
   : valid_(true)
   , name_(name)
   , nh_(nh)

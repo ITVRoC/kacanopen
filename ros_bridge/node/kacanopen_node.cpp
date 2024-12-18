@@ -1,13 +1,13 @@
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <ros/spinner.h>
 #include <kacanopen_hardware.h>
 #include <controller_manager/controller_manager.h>
 #include <vector>
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "kacanopen_velocity_hardware");
-  ros::NodeHandle nh;
-  ros::NodeHandle pnh("~");
+  rclcpp::init(argc, argv, "kacanopen_velocity_hardware");
+  rclcpp::Node nh;
+  rclcpp::Node pnh("~");
 
   // Set the name of your CAN bus. "slcan0" is a common bus name
   // for the first SocketCAN device on a Linux system.
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   size_t num_devices_required = 1;
-  while (master.num_devices()<num_devices_required && ros::ok()) {
+  while (master.num_devices()<num_devices_required && rclcpp::ok()) {
     ROS_ERROR_STREAM("Number of devices found: " << master.num_devices() << ". Waiting for " << num_devices_required << ".");
     ROS_INFO("Trying to discover more nodes via NMT Node Guarding...");
     master.core.nmt.discover_nodes();
@@ -53,11 +53,11 @@ int main(int argc, char** argv) {
   }
   ROS_INFO("Motors Initialized");
 
-  ros::Rate controller_rate(50);
-  ros::Time last = ros::Time::now();
-  while (ros::ok()) {
+  rclcpp::Rate controller_rate(50);
+  ros::Time last = node->now();
+  while (rclcpp::ok()) {
     robot.read();
-    ros::Time now = ros::Time::now();
+    ros::Time now = node->now();
     cm.update(now, now-last);
     robot.write();
     last = now;

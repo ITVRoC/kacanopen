@@ -34,7 +34,7 @@
 #include "logger.h"
 #include "sdo_error.h"
 
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/JointState.h"
 
 #include <string>
@@ -61,8 +61,8 @@ void TestJointStatePublisher::advertise() {
 
 	assert(!m_topic_name.empty());
 	DEBUG_LOG("Advertising "<<m_topic_name);
-	ros::NodeHandle nh;
-	m_publisher = nh.advertise<sensor_msgs::JointState>(m_topic_name, queue_size);
+	rclcpp::Node nh;
+	m_publisher = nh.advertise<sensor_msgs::msg::JointState>(m_topic_name, queue_size);
 	m_initialized = true;
 	m_publish_state = true;
 
@@ -84,11 +84,11 @@ void TestJointStatePublisher::publish() {
 			return;
 		}
 
-		sensor_msgs::JointState js;
+		sensor_msgs::msg::JointState js;
 
 		js.name.resize(1);
 		js.name[0] = m_topic_name;
-		js.header.stamp = ros::Time::now();
+		js.header.stamp = node->now();
 
 		js.position.resize(1);
 		const int32_t pos = 10;

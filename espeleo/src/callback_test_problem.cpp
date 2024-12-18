@@ -36,7 +36,7 @@
 #include "test_entry_publisher.h"
 #include "entry_subscriber.h"
 #include "mapping.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include "publisher.h"
@@ -52,7 +52,7 @@
 kaco::Master master;
 kaco::Bridge bridge;
 
-bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
+bool reset_motors(std_srvs::srv::TriggerRequest &req, std_srvs::srv::TriggerResponse &res)
 {
 	
 	ROS_INFO("RESET MOTORS CALLED");
@@ -74,10 +74,10 @@ int main(int argc, char* argv[]) {
 	const double loop_rate = 5; // [Hz]
 
 	// Create bridge
-	ros::init(argc, argv, "callback_test_problem");
+	rclcpp::init(argc, argv, "callback_test_problem");
 
-  	ros::NodeHandle n;
-  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
+  	rclcpp::Node n;
+  	rclcpp::Service service = n.advertiseService("reset_motors", reset_motors);
 
 	for (size_t i=0; i < 6; ++i) {
 

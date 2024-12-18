@@ -2,7 +2,7 @@
 
 namespace kaco
 {
-KaCanopenHardware::KaCanopenHardware(Master* master, ros::NodeHandle& nh, ros::NodeHandle& pnh, const std::vector<std::string>& motor_names)
+KaCanopenHardware::KaCanopenHardware(Master* master, rclcpp::Node& nh, rclcpp::Node& pnh, const std::vector<std::string>& motor_names)
   : manager_(master, asi, avi, api, nh, pnh, motor_names)
 {
   // TODO throw exception or something
@@ -28,7 +28,7 @@ KaCanopenHardware::KaCanopenHardware(Master* master, ros::NodeHandle& nh, ros::N
 
   std::string urdf_string;
   nh.getParam("robot_description", urdf_string);
-  while (urdf_string.empty() && ros::ok())
+  while (urdf_string.empty() && rclcpp::ok())
   {
     ROS_INFO_STREAM_ONCE("Waiting for robot_description");
     nh.getParam("robot_description", urdf_string);

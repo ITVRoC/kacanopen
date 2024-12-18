@@ -32,7 +32,7 @@
 #include "entry_publisher.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
 #include "std_msgs/UInt8.h"
@@ -64,11 +64,11 @@ void EntryPublisher::advertise() {
 
 	std::string topic = m_device_prefix+"get_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
+	rclcpp::Node nh;
 
 	switch(m_type) {
 		case Type::uint8:
-			m_publisher = nh.advertise<std_msgs::UInt8>(topic, queue_size);
+			m_publisher = nh.advertise<std_msgs::msg::UInt8>(topic, queue_size);
 			break;
 		case Type::uint16:
 			m_publisher = nh.advertise<std_msgs::UInt16>(topic, queue_size);
@@ -115,7 +115,7 @@ void EntryPublisher::publish() {
 
 		switch(m_type) {
 			case Type::uint8: {
-				std_msgs::UInt8 msg;
+				std_msgs::msg::UInt8 msg;
 				msg.data = value; // auto cast!
 				m_publisher.publish(msg);
 				break;

@@ -32,7 +32,7 @@
 #include "test_entry_publisher.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
 #include "std_msgs/UInt8.h"
@@ -62,9 +62,9 @@ void TestEntryPublisher::advertise() {
 
 	std::string topic = m_device_prefix+"get_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
+	rclcpp::Node nh;
 
-	m_publisher = nh.advertise<std_msgs::UInt8>(topic, queue_size);
+	m_publisher = nh.advertise<std_msgs::msg::UInt8>(topic, queue_size);
 	m_publish_state = true;
 }
 
@@ -81,7 +81,7 @@ void TestEntryPublisher::publish() {
 
 	try {
 
-		std_msgs::UInt8 msg;
+		std_msgs::msg::UInt8 msg;
 		msg.data = 123; // auto cast!
 		m_publisher.publish(msg);
 		

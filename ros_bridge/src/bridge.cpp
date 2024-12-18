@@ -32,7 +32,7 @@
 #include "bridge.h"
 #include "logger.h"
 #include "sdo_error.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 
 #include <future>
 
@@ -44,8 +44,8 @@ void Bridge::add_publisher(std::shared_ptr<Publisher> publisher, double loop_rat
 
 	m_futures.push_front(
 		std::async(std::launch::async, [publisher, loop_rate, this](){
-			ros::Rate rate(loop_rate);
-			while(ros::ok()) {
+			rclcpp::Rate rate(loop_rate);
+			while(rclcpp::ok()) {
 				publisher->publish();
 				rate.sleep();
 			}

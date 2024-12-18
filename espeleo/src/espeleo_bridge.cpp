@@ -36,7 +36,7 @@
 #include "entry_publisher.h"
 #include "entry_subscriber.h"
 #include "mapping.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include "publisher.h"
@@ -116,10 +116,10 @@ bool reset_motors(){
   	return true;
 }
 
-bool reset_motors_srv_callback(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res){
+bool reset_motors_srv_callback(std_srvs::srv::TriggerRequest &req, std_srvs::srv::TriggerResponse &res){
 	res.success = reset_motors();
   	ROS_INFO("sending back response: [%d]", res.success);
-	ros::param::set("/reset_motors_flag", false); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
+	node->set_parameter("/reset_motors_flag", false); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
 }
 
 int main(int argc, char* argv[]) {
@@ -156,13 +156,13 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Create bridge
-	ros::init(argc, argv, "canopen_bridge");
+	rclcpp::init(argc, argv, "canopen_bridge");
 
-  	ros::NodeHandle n;
-  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors_srv_callback);
+  	rclcpp::Node n;
+  	rclcpp::Service service = n.advertiseService("reset_motors", reset_motors_srv_callback);
 
-	ros::param::get("~acceleration", acceleration);
-	ros::param::get("~deceleration", deceleration);
+	node->get_parameter("~acceleration", acceleration);
+	node->get_parameter("~deceleration", deceleration);
 
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {

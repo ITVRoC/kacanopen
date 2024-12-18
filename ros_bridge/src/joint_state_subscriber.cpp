@@ -34,7 +34,7 @@
 #include "logger.h"
 #include "profiles.h"
 #include "sdo_error.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include <string>
 
 namespace kaco {
@@ -83,14 +83,14 @@ namespace kaco {
 
     assert(!m_topic_name.empty());
     ROS_DEBUG_STREAM("Advertising " << m_topic_name);
-    ros::NodeHandle nh;
+    rclcpp::Node nh;
     m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
     //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
     m_initialized = true;
     m_subscribe_state = true;
   }
 
-  void JointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
+  void JointStateSubscriber::receive(const sensor_msgs::msg::JointState & msg) {
 
     try {
         if (!m_subscribe_state) {
