@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  kacanopen:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: kacanopen:latest
+    container_name: kacanopen_container
+    hostname: kacanopen
+    privileged: true  # Required for CAN interface access
+    network_mode: host  # Required for ROS communication
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_MASTER_URI=http://localhost:11311
+      - ROS_HOSTNAME=localhost
+      - DRIVER=socket
+      - BUSNAME=vcan0
+      - BAUDRATE=500000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # For GUI applications
+      - ../:/catkin_ws/src/kacanopen:rw    # Mount source code for development
+      - /dev:/dev                         # Access to hardware devices
+    working_dir: /catkin_ws
+    tty: true
+    stdin_open: true
+    command: >
+      bash -c "
+        # Setup virtual CAN interface
+        /setup_vcan.sh &&
+        # Source ROS environment
+        source /opt/ros/noetic/setup.bash &&
+        source /catkin_ws/devel/setup.bash &&
+        # Keep container running
+        tail -f /dev/null
+      "
+
+  # Optional: ROS Master service (if you want to run roscore in a separate container)
+  roscore:
+    image: ros:noetic-desktop-full
+    container_name: roscore_container
+    hostname: roscore
+    network_mode: host
+    environment:
+      - ROS_MASTER_URI=http://localhost:11311
+    command: roscore
+    restart: unless-stopped
