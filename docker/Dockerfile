@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     can-utils \
     net-tools \
     iputils-ping \
+    iproute2 \
+    kmod \
     vim \
     nano \
     && rm -rf /var/lib/apt/lists/*
