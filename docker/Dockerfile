@@ -1,5 +1,5 @@
 # Use ROS Noetic as base image
-FROM ros:noetic-desktop-full
+FROM osrf/ros:noetic-desktop-full-focal
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
