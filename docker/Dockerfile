@@ -75,4 +75,3 @@ WORKDIR /catkin_ws
 
 # Default command
 CMD ["/bin/bash"]
-
