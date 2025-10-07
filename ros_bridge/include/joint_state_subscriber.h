@@ -34,7 +34,7 @@
 #include "device.h"
 #include "subscriber.h"
 #include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/JointState.h"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 #include <string>
 #include <cmath>
@@ -87,7 +87,7 @@ namespace kaco {
 		static const unsigned queue_size = 1;
 
 		/// Callback "received ROS JointState message"
-		void receive(const sensor_msgs::JointState& msg);
+		void receive(const sensor_msgs::msg::JointState& msg);
 
 		/// converts radiant to "Target position" value from CanOpen using m_position_0_degree and m_position_360_degree
 		int32_t rad_to_pos(double pos) const;
@@ -104,7 +104,7 @@ namespace kaco {
 		bool m_initialized;
 		bool m_subscribe_state;
 
-		ros::Subscriber m_subscriber;
+		rclcpp::SubscriptionBase::SharedPtr m_subscriber;
 
 	};
 

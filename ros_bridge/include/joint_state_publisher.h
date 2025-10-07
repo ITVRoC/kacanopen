@@ -107,7 +107,7 @@ namespace kaco {
 		bool m_initialized;
 		bool m_publish_state;
 
-		ros::Publisher m_publisher;
+                rclcpp::PublisherBase::SharedPtr m_publisher;
 
 	};
 

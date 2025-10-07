@@ -35,14 +35,14 @@
 #include "subscriber.h"
 #include "rclcpp/rclcpp.hpp"
 
-#include "std_msgs/UInt8.h"
-#include "std_msgs/UInt16.h"
-#include "std_msgs/UInt32.h"
-#include "std_msgs/Int8.h"
-#include "std_msgs/Int16.h"
-#include "std_msgs/Int32.h"
-#include "std_msgs/Bool.h"
-#include "std_msgs/String.h"
+#include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/int16.hpp"
+#include "std_msgs/msg/int32.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/string.hpp"
  
 #include <string>
 #include <thread>
@@ -68,14 +68,14 @@ namespace kaco {
 
 	private:
 
-		void receive_uint8(const std_msgs::UInt8& msg);
-		void receive_uint16(const std_msgs::UInt16& msg);
-		void receive_uint32(const std_msgs::UInt32& msg);
-		void receive_int8(const std_msgs::Int8& msg);
-		void receive_int16(const std_msgs::Int16& msg);
-		void receive_int32(const std_msgs::Int32& msg);
-		void receive_boolean(const std_msgs::Bool& msg);
-		void receive_string(const std_msgs::String& msg);
+	void receive_uint8(const std_msgs::msg::UInt8& msg);
+	void receive_uint16(const std_msgs::msg::UInt16& msg);
+	void receive_uint32(const std_msgs::msg::UInt32& msg);
+	void receive_int8(const std_msgs::msg::Int8& msg);
+	void receive_int16(const std_msgs::msg::Int16& msg);
+	void receive_int32(const std_msgs::msg::Int32& msg);
+	void receive_boolean(const std_msgs::msg::Bool& msg);
+	void receive_string(const std_msgs::msg::String& msg);
 
 		static const bool debug = false;
 
@@ -83,7 +83,7 @@ namespace kaco {
 		//static const unsigned queue_size = 10000;
 		static const unsigned queue_size = 1;
 
-		ros::Subscriber m_subscriber;
+		rclcpp::SubscriptionBase::SharedPtr m_subscriber;
 		std::string m_device_prefix;
 		std::string m_name;
 

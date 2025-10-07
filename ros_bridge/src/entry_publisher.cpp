@@ -64,32 +64,35 @@ void EntryPublisher::advertise() {
 
 	std::string topic = m_device_prefix+"get_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
+	if (!m_node) {
+		ERROR("[EntryPublisher] Node not set. Call set_node() first.");
+		return;
+	}
 
 	switch(m_type) {
 		case Type::uint8:
-			m_publisher = nh.advertise<std_msgs::UInt8>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::UInt8>(topic, queue_size);
 			break;
 		case Type::uint16:
-			m_publisher = nh.advertise<std_msgs::UInt16>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::UInt16>(topic, queue_size);
 			break;
 		case Type::uint32:
-			m_publisher = nh.advertise<std_msgs::UInt32>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::UInt32>(topic, queue_size);
 			break;
 		case Type::int8:
-			m_publisher = nh.advertise<std_msgs::Int8>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::Int8>(topic, queue_size);
 			break;
 		case Type::int16:
-			m_publisher = nh.advertise<std_msgs::Int16>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::Int16>(topic, queue_size);
 			break;
 		case Type::int32:
-			m_publisher = nh.advertise<std_msgs::Int32>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::Int32>(topic, queue_size);
 			break;
 		case Type::boolean:
-			m_publisher = nh.advertise<std_msgs::Bool>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::Bool>(topic, queue_size);
 			break;
 		case Type::string:
-			m_publisher = nh.advertise<std_msgs::String>(topic, queue_size);
+			m_publisher = m_node->create_publisher<std_msgs::msg::String>(topic, queue_size);
 			break;
 		default:
 			ERROR("[EntryPublisher::advertise] Invalid entry type.")
@@ -105,7 +108,7 @@ void EntryPublisher::set_publish_state(bool state) {
 void EntryPublisher::publish() {
 
 	if (!m_publish_state) {
-	    ROS_WARN_STREAM_ONCE("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+	    RCLCPP_WARN_ONCE(m_node->get_logger(), "[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
 		return;
 	}
 
