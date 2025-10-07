@@ -1,7 +1,7 @@
 #ifndef KACANOPEN_MANAGER_H
 #define KACANOPEN_MANAGER_H
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <hardware_interface/actuator_command_interface.h>
 #include <hardware_interface/actuator_state_interface.h>
 #include <hardware_interface/robot_hw.h>

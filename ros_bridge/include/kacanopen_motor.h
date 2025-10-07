@@ -1,7 +1,7 @@
 #ifndef KACANOPEN_MOTOR_H
 #define KACANOPEN_MOTOR_H
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <hardware_interface/actuator_command_interface.h>
 #include <hardware_interface/actuator_state_interface.h>
 #include <diagnostic_updater/diagnostic_updater.h>

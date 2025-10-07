@@ -33,7 +33,7 @@
 
 #include "device.h"
 #include "subscriber.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 
 #include "std_msgs/UInt8.h"
 #include "std_msgs/UInt16.h"

@@ -33,7 +33,7 @@
 
 #include "device.h"
 #include "subscriber.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/JointState.h"
 
 #include <string>
