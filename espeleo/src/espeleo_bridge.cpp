@@ -36,9 +36,9 @@
 #include "entry_publisher.h"
 #include "entry_subscriber.h"
 #include "mapping.h"
-#include "ros/ros.h"
-#include <std_srvs/Empty.h>
-#include <std_srvs/Trigger.h>
+#include "rclcpp/rclcpp.hpp"
+#include "std_srvs/srv/empty.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "publisher.h"
 
 
@@ -116,13 +116,22 @@ bool reset_motors(){
   	return true;
 }
 
-bool reset_motors_srv_callback(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res){
-	res.success = reset_motors();
-  	ROS_INFO("sending back response: [%d]", res.success);
-	ros::param::set("/reset_motors_flag", false); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
+void reset_motors_srv_callback(
+	const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+	std::shared_ptr<std_srvs::srv::Trigger::Response> response,
+	std::shared_ptr<rclcpp::Node> node)
+{
+	(void)request; // Unused parameter
+	response->success = reset_motors();
+	RCLCPP_INFO(node->get_logger(), "sending back response: [%d]", response->success);
+	node->set_parameter(rclcpp::Parameter("/reset_motors_flag", false)); //flag to start espeleo_locomotion to guarantee the motors not to crash (fault state)
 }
 
 int main(int argc, char* argv[]) {
+
+	// Initialize ROS 2
+	rclcpp::init(argc, argv);
+	auto node = rclcpp::Node::make_shared("canopen_bridge");
 
 	// Set the name of your CAN bus. "slcan0" is a common bus name
 	// for the first SocketCAN device on a Linux system.
@@ -155,14 +164,19 @@ int main(int argc, char* argv[]) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
-	// Create bridge
-	ros::init(argc, argv, "canopen_bridge");
+	// Create service
+	auto service = node->create_service<std_srvs::srv::Trigger>(
+		"reset_motors", 
+		[node](const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+			   std::shared_ptr<std_srvs::srv::Trigger::Response> response) {
+			reset_motors_srv_callback(request, response, node);
+		});
 
-  	ros::NodeHandle n;
-  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors_srv_callback);
-
-	ros::param::get("~acceleration", acceleration);
-	ros::param::get("~deceleration", deceleration);
+	// Get parameters
+	node->declare_parameter("acceleration", acceleration);
+	node->declare_parameter("deceleration", deceleration);
+	acceleration = node->get_parameter("acceleration").as_int();
+	deceleration = node->get_parameter("deceleration").as_int();
 
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {
@@ -244,5 +258,11 @@ int main(int argc, char* argv[]) {
 
 	reset_motors();
 
-	bridge.run();
+	// Convert bridge to use ROS 2 node
+	bridge.set_node(node);
+	
+	// Spin the node
+	rclcpp::spin(node);
+	rclcpp::shutdown();
+	return 0;
 }

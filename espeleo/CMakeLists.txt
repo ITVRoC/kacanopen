@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 
-message(STATUS "Configuring")
+message(STATUS "Configuring espeleo")
 
 file(GLOB TARGETS_SRC
 	"*.cpp"
@@ -19,13 +19,19 @@ foreach(TARGET_SRC ${TARGETS_SRC})
 	get_filename_component(TARGET_NAME ${TARGET_SRC} NAME_WE)
 	set(TARGET_NAME "kacanopen_${TARGET_NAME}")
 	add_executable(${TARGET_NAME} ${TARGET_SRC})
-	set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 11)
+	set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
 	target_link_libraries(${TARGET_NAME} kacanopen_core)
 	target_link_libraries(${TARGET_NAME} kacanopen_master)
-	target_link_libraries(${TARGET_NAME} kacanopen_ros_bridge)
-
+	
 	if (NOT(${NO_ROS}))
-		target_link_libraries(${TARGET_NAME} kacanopen_core kacanopen_master kacanopen_ros_bridge ${catkin_LIBRARIES})
+		target_link_libraries(${TARGET_NAME} kacanopen_ros_bridge)
+		# ROS 2 dependencies
+		ament_target_dependencies(${TARGET_NAME}
+			rclcpp
+			std_msgs
+			sensor_msgs
+			std_srvs
+		)
 	endif()
 	
 	list(APPEND KACANOPEN_TARGET_NAMES ${TARGET_NAME})
