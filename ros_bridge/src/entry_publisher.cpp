@@ -32,17 +32,17 @@
 #include "entry_publisher.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
-#include "std_msgs/UInt8.h"
-#include "std_msgs/UInt16.h"
-#include "std_msgs/UInt32.h"
-#include "std_msgs/Int8.h"
-#include "std_msgs/Int16.h"
-#include "std_msgs/Int32.h"
-#include "std_msgs/Bool.h"
-#include "std_msgs/String.h"
+#include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/int16.hpp"
+#include "std_msgs/msg/int32.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/string.hpp"
 
 #include <string>
 

@@ -31,6 +31,9 @@
  
 #pragma once
 
+#include "rclcpp/rclcpp.hpp"
+#include <memory>
+
 namespace kaco {
 
 	/// Interface, which provides methods for subscribing topics.
@@ -38,8 +41,11 @@ namespace kaco {
 
 	public:
 
+		/// Set the ROS 2 node for this subscriber
+		virtual void set_node(std::shared_ptr<rclcpp::Node> node) { m_node = node; }
+
 		/// Advertise the subscriber to the network. This is called by
-		/// Bridge _after_ ros::init(). You should not call this
+		/// Bridge _after_ rclcpp::init(). You should not call this
 		/// method by yourself.
 		virtual void advertise() = 0;
 
@@ -47,6 +53,9 @@ namespace kaco {
 
 		// Virtual destructor must be defined!
 		virtual ~Subscriber() { }
+
+	protected:
+		std::shared_ptr<rclcpp::Node> m_node;
 
 	};
 

@@ -34,6 +34,7 @@
 #include "master.h"
 #include "publisher.h"
 #include "subscriber.h"
+#include "rclcpp/rclcpp.hpp"
 
 #include <string>
 #include <vector>
@@ -44,10 +45,13 @@
 
 namespace kaco {
 
-	/// This class is a bridge between a ROS network and a CanOpen network.
+	/// This class is a bridge between a ROS 2 network and a CanOpen network.
 	class Bridge {
 
 	public:
+
+		/// Sets the ROS 2 node for the bridge
+		void set_node(std::shared_ptr<rclcpp::Node> node);
 
 		/// Runs the ROS spinner and blocks until shutdown (e.g. via Ctrl+c).
 		void run();
@@ -71,6 +75,7 @@ namespace kaco {
 
 		static const bool debug = false;
 
+		std::shared_ptr<rclcpp::Node> m_node;
 		std::vector<std::shared_ptr<Publisher>> m_publishers;
 		std::vector<std::shared_ptr<Subscriber>> m_subscribers;
 		std::forward_list<std::future<void>> m_futures;

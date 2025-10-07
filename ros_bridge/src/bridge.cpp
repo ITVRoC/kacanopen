@@ -32,20 +32,27 @@
 #include "bridge.h"
 #include "logger.h"
 #include "sdo_error.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 
 #include <future>
 
 namespace kaco {
 
+void Bridge::set_node(std::shared_ptr<rclcpp::Node> node) {
+	m_node = node;
+}
+
 void Bridge::add_publisher(std::shared_ptr<Publisher> publisher, double loop_rate) {
 	m_publishers.push_back(publisher);
+	if (m_node) {
+		publisher->set_node(m_node);
+	}
 	publisher->advertise();
 
 	m_futures.push_front(
 		std::async(std::launch::async, [publisher, loop_rate, this](){
-			ros::Rate rate(loop_rate);
-			while(ros::ok()) {
+			rclcpp::Rate rate(loop_rate);
+			while(rclcpp::ok() && m_node) {
 				publisher->publish();
 				rate.sleep();
 			}
@@ -63,13 +70,16 @@ std::vector<std::shared_ptr<Subscriber>> Bridge::get_subscribers() {
 
 void Bridge::add_subscriber(std::shared_ptr<Subscriber> subscriber) {
 	m_subscribers.push_back(subscriber);
+	if (m_node) {
+		subscriber->set_node(m_node);
+	}
 	subscriber->advertise();
 }
 
 void Bridge::run() {
-	ros::AsyncSpinner spinner(0);
-	spinner.start();
-	ros::waitForShutdown();
+	if (m_node) {
+		rclcpp::spin(m_node);
+	}
 }
 
 } // end namespace kaco
