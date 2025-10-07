@@ -36,6 +36,7 @@
 #include <mutex>
 #include <list>
 #include <unordered_map>
+#include <array>
 
 #include "message.h"
 #include "sdo_response.h"

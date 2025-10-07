@@ -61,12 +61,13 @@ void SDO::download(uint8_t node_id, uint16_t index, uint8_t subindex, uint32_t s
 							| Flag::size_indicated
 							| Flag::expedited_transfer;
 
-		SDOResponse response = send_sdo_and_wait(command, node_id, index, subindex, {{
+		std::array<uint8_t, 4> sdo_data = {
 			data[0],
 			(size>1) ? data[1] : (uint8_t) 0,
 			(size>2) ? data[2] : (uint8_t) 0,
 			(size>3) ? data[3] : (uint8_t) 0
-		}});
+		};
+		SDOResponse response = send_sdo_and_wait(command, node_id, index, subindex, sdo_data);
 
 		if (response.failed()) {
 			throw sdo_error(response.get_data());
@@ -86,7 +87,8 @@ std::vector<uint8_t> SDO::upload(uint8_t node_id, uint16_t index, uint8_t subind
 	std::vector<uint8_t> result;
 
 	uint8_t command = Flag::initiate_upload_request;
-	SDOResponse response = send_sdo_and_wait(command, node_id, index, subindex, {{0,0,0,0}});
+	std::array<uint8_t, 4> sdo_data = {0,0,0,0};
+	SDOResponse response = send_sdo_and_wait(command, node_id, index, subindex, sdo_data);
 
 	if (response.failed()) {
 		throw sdo_error(response.get_data());
@@ -118,9 +120,10 @@ std::vector<uint8_t> SDO::upload(uint8_t node_id, uint16_t index, uint8_t subind
 				return result;
 			}
 
-			uint8_t command = Flag::upload_segment_request
-								| toggle_bit;
-			SDOResponse response = send_sdo_and_wait(command, node_id, 0, 0, {{0,0,0,0}});
+		uint8_t command = Flag::upload_segment_request
+							| toggle_bit;
+		std::array<uint8_t, 4> sdo_data = {0,0,0,0};
+		SDOResponse response = send_sdo_and_wait(command, node_id, 0, 0, sdo_data);
 
 			if (response.failed()) {
 				throw sdo_error(response.get_data());
