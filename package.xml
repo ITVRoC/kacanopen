@@ -1,23 +1,33 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
 	<name>kacanopen</name>
 	<version>0.1.0</version>
-	<description>KaCanOpen: An Open Plug&amp;Play CANopen Stack for ROS in Modern C++</description>
+	<description>KaCanOpen: An Open Plug&amp;Play CANopen Stack for ROS 2 in Modern C++</description>
 	<maintainer email="thomas.keh@student.kit.edu">Thomas Keh</maintainer>
 	<author email="thomas.keh@student.kit.edu">Thomas Keh</author>
 	<license>BSD</license>
 	<url type="website">https://github.com/KITmedical/kacanopen</url>
 
-	<buildtool_depend>catkin</buildtool_depend>
-	<build_depend>std_msgs</build_depend>
-	<build_depend>sensor_msgs</build_depend>  
-  <depend>roscpp</depend>
-  <depend>message_runtime</depend>
-  <depend>controller_manager</depend>
-  <depend>hardware_interface</depend>
-  <depend>transmission_interface</depend>
-  <depend>diagnostic_updater</depend>
-  
-	<!-- <build_depend>message_generation</build_depend> -->
+	<buildtool_depend>ament_cmake</buildtool_depend>
+	
+	<depend>rclcpp</depend>
+	<depend>std_msgs</depend>
+	<depend>sensor_msgs</depend>
+	<depend>std_srvs</depend>
+	<depend>controller_manager</depend>
+	<depend>hardware_interface</depend>
+	<depend>transmission_interface</depend>
+	<depend>diagnostic_updater</depend>
+	<depend>rosidl_default_generators</depend>
+	<depend>rosidl_default_runtime</depend>
+	
+	<test_depend>ament_lint_auto</test_depend>
+	<test_depend>ament_lint_common</test_depend>
+
+	<export>
+		<build_type>ament_cmake</build_type>
+	</export>
+
+	<member_of_group>rosidl_interface_packages</member_of_group>
 
 </package>

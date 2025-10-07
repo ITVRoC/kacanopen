@@ -1,16 +1,14 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
+project(kacanopen)
 
-### Compiler config ###
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-
-
-# Compiler flags
-# TOD0: -std=c++14 will be obsolete when reverting to minimum CMake version 3.2 and
-#       using set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 14) again.
-project(kacanopen C CXX)
-
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra") # -Werror
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra") # -Werror
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 ### settings ###
 
@@ -89,44 +87,26 @@ message(STATUS "Found Boost filesystem library: ${Boost_FILESYSTEM_LIBRARY}")
 message(STATUS "Found Threads library: ${CMAKE_THREAD_LIBS_INIT}")
 
 
-### ROS ###
+### ROS 2 ###
 
 if (NOT(${NO_ROS}))
-	
-	get_cmake_property(_variableNames VARIABLES)
-	list (SORT _variableNames)
-	foreach (_variableName ${_variableNames})
-	    message(STATUS "${_variableName}=${${_variableName}}")
-	endforeach()
+	# Find dependencies
+	find_package(ament_cmake REQUIRED)
+	find_package(rclcpp REQUIRED)
+	find_package(std_msgs REQUIRED)
+	find_package(sensor_msgs REQUIRED)
+	find_package(std_srvs REQUIRED)
+	find_package(controller_manager REQUIRED)
+	find_package(hardware_interface REQUIRED)
+	find_package(transmission_interface REQUIRED)
+	find_package(diagnostic_updater REQUIRED)
+	find_package(rosidl_default_generators REQUIRED)
 
-	find_package(catkin REQUIRED COMPONENTS
-		roscpp
-		std_msgs
-		sensor_msgs
-	    controller_manager
-	    hardware_interface
-	    transmission_interface
-	    diagnostic_updater
-	    message_generation
-	)
-
-	## Generate services in the 'srv' folder
-	#add_service_files(
-	#	DIRECTORY
-	#	${PROJECT_SOURCE_DIR}/espeleo/srv/
-	#	FILES
-	#	reset_motors.srv
-	#	)
-
-	generate_messages(
-	    	DEPENDENCIES
-	    	std_msgs
-	)
-
-	catkin_package(
-		INCLUDE_DIRS core/include master/include ros_bridge/include
-		LIBRARIES ${CAN_DRIVER} kacanopen_core kacanopen_master kacanopen_ros_bridge
-		CATKIN_DEPENDS message_runtime
+	# Generate services
+	rosidl_generate_interfaces(${PROJECT_NAME}
+		"ros_bridge/srv/Mode.srv"
+		"ros_bridge/srv/Action.srv"
+		DEPENDENCIES std_msgs
 	)
 
 endif()
@@ -135,11 +115,6 @@ endif()
 ### includes ###
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-
-if (NOT(${NO_ROS}))
-	include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
-endif()
-
 include_directories(${CMAKE_CURRENT_LIST_DIR}/core/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/master/include)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/ros_bridge/include)
@@ -164,14 +139,13 @@ macro(kacanopen_install)
 		endif()
 	else()
 		install(TARGETS ${ARGV0}
-			LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-			RUNTIME DESTINATION bin
+			DESTINATION lib/${PROJECT_NAME}
 		)
 		if (${ARGV1})
-			install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include
-				DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+			install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
+				DESTINATION include/${PROJECT_NAME}
 			)
-			endif()
+		endif()
 	endif()
 endmacro()
 
@@ -198,3 +172,37 @@ add_subdirectory(core)
 add_subdirectory(master)
 add_subdirectory(espeleo)
 add_subdirectory(tools)
+
+# ROS 2 ament export
+if (NOT(${NO_ROS}))
+	# Export dependencies
+	ament_export_dependencies(
+		rclcpp
+		std_msgs
+		sensor_msgs
+		std_srvs
+		controller_manager
+		hardware_interface
+		transmission_interface
+		diagnostic_updater
+	)
+	
+	# Export include directories
+	ament_export_include_directories(
+		core/include
+		master/include
+		ros_bridge/include
+	)
+	
+	# Export libraries
+	ament_export_libraries(
+		kacanopen_core
+		kacanopen_master
+		kacanopen_ros_bridge
+	)
+	
+	# Generate and export targets
+	rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+	
+	ament_package()
+endif()
