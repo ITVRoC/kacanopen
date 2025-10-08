@@ -134,19 +134,19 @@ int main(int argc, char* argv[]) {
 	auto node = rclcpp::Node::make_shared("canopen_bridge");
 
 	// Set the name of your CAN bus. Use can0 for real hardware
-	// or vcan0 for virtual testing. Can be overridden by command line arguments.
+	// or vcan0 for virtual testing. Use ROS 2 parameters for configuration.
 	std::string busname = "can0";   // Default to real CAN hardware
 	std::string baudrate = "1M";    // Default baudrate
 
-	// Allow command line arguments to override defaults
-	if (argc >= 2) {
-		busname = argv[1];
-		RCLCPP_INFO(node->get_logger(), "Using CAN bus from argument: %s", busname.c_str());
-	}
-	if (argc >= 3) {
-		baudrate = argv[2];
-		RCLCPP_INFO(node->get_logger(), "Using baudrate from argument: %s", baudrate.c_str());
-	}
+	// Declare and get ROS 2 parameters
+	node->declare_parameter("busname", busname);
+	node->declare_parameter("baudrate", baudrate);
+	
+	busname = node->get_parameter("busname").as_string();
+	baudrate = node->get_parameter("baudrate").as_string();
+	
+	RCLCPP_INFO(node->get_logger(), "Using CAN bus from parameter: %s", busname.c_str());
+	RCLCPP_INFO(node->get_logger(), "Using baudrate from parameter: %s", baudrate.c_str());
 	
 	RCLCPP_INFO(node->get_logger(), "Initializing CANopen master on %s at %s", busname.c_str(), baudrate.c_str());
 
