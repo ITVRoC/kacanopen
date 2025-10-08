@@ -8,6 +8,18 @@ from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
     # Declare launch arguments
+    busname_arg = DeclareLaunchArgument(
+        'busname',
+        default_value='can0',
+        description='CAN bus interface name'
+    )
+    
+    baudrate_arg = DeclareLaunchArgument(
+        'baudrate',
+        default_value='1M',
+        description='CAN bus baudrate'
+    )
+    
     acceleration_arg = DeclareLaunchArgument(
         'acceleration',
         default_value='10000',
@@ -34,6 +46,8 @@ def generate_launch_description():
         output='screen',
         respawn=True,
         parameters=[{
+            'busname': LaunchConfiguration('busname'),
+            'baudrate': LaunchConfiguration('baudrate'),
             'acceleration': LaunchConfiguration('acceleration'),
             'deceleration': LaunchConfiguration('deceleration'),
             'reset_motors_flag': LaunchConfiguration('reset_motors_flag'),
@@ -41,6 +55,8 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        busname_arg,
+        baudrate_arg,
         acceleration_arg,
         deceleration_arg,
         reset_motors_flag_arg,
