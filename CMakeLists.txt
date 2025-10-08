@@ -175,6 +175,12 @@ add_subdirectory(tools)
 
 # ROS 2 ament export
 if (NOT(${NO_ROS}))
+	# Install launch files
+	install(DIRECTORY launch/
+		DESTINATION share/${PROJECT_NAME}/launch
+		FILES_MATCHING PATTERN "*.py"
+	)
+
 	# Export dependencies
 	ament_export_dependencies(
 		rclcpp

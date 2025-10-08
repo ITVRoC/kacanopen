@@ -1,0 +1,32 @@
+services:
+  kacanopen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kacanopen_ros2
+    privileged: true
+    network_mode: host
+    volumes:
+      - .:/workspace/src/kacanopen:rw
+      - /dev:/dev
+    environment:
+      - ROS_DOMAIN_ID=0
+      - BUSNAME=can0
+      - BAUDRATE=1M
+      - ACCELERATION=10000
+      - DECELERATION=20000
+      - RESET_MOTORS_FLAG=false
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "
+        source /opt/ros/jazzy/setup.bash &&
+        source /workspace/install/setup.bash &&
+        ros2 launch kacanopen espeleo_kacanopen_launch.py 
+          busname:=$${BUSNAME} 
+          baudrate:=$${BAUDRATE} 
+          acceleration:=$${ACCELERATION} 
+          deceleration:=$${DECELERATION} 
+          reset_motors_flag:=$${RESET_MOTORS_FLAG}
+      "
