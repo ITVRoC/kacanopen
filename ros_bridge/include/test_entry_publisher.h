@@ -68,7 +68,7 @@ namespace kaco {
 		//static const unsigned queue_size = 100;
 		static const unsigned queue_size = 10;
 
-		ros::Publisher m_publisher;
+                rclcpp::PublisherBase::SharedPtr m_publisher;
 		std::string m_device_prefix;
 		std::string m_name;
 
