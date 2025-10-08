@@ -118,51 +118,59 @@ void EntryPublisher::publish() {
 
 		switch(m_type) {
 			case Type::uint8: {
-				std_msgs::UInt8 msg;
+				std_msgs::msg::UInt8 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::UInt8>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::uint16: {
-				std_msgs::UInt16 msg;
+				std_msgs::msg::UInt16 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::UInt16>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::uint32: {
-				std_msgs::UInt32 msg;
+				std_msgs::msg::UInt32 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::UInt32>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::int8: {
-				std_msgs::Int8 msg;
+				std_msgs::msg::Int8 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::Int8>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::int16: {
-				std_msgs::Int16 msg;
+				std_msgs::msg::Int16 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::Int16>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::int32: {
-				std_msgs::Int32 msg;
+				std_msgs::msg::Int32 msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::Int32>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::boolean: {
-				std_msgs::Bool msg;
+				std_msgs::msg::Bool msg;
 				msg.data = value; // auto cast!
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::Bool>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			case Type::string: {
-				std_msgs::String msg;
+				std_msgs::msg::String msg;
 				msg.data = (std::string) value;
-				m_publisher.publish(msg);
+				auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::String>>(m_publisher);
+				typed_pub->publish(msg);
 				break;
 			}
 			default: {

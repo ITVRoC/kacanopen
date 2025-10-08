@@ -34,8 +34,9 @@
 #include "logger.h"
 #include "profiles.h"
 #include "sdo_error.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include <string>
+#include <functional>
 
 namespace kaco {
 
@@ -82,15 +83,20 @@ namespace kaco {
   void JointStateSubscriber::advertise() {
 
     assert(!m_topic_name.empty());
-    ROS_DEBUG_STREAM("Advertising " << m_topic_name);
-    ros::NodeHandle nh;
-    m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
+    RCLCPP_DEBUG_STREAM(m_node->get_logger(), "Advertising " << m_topic_name);
+    if (!m_node) {
+        ERROR("[JointStateSubscriber] Node not set. Call set_node() first.");
+        return;
+    }
+    m_subscriber = m_node->create_subscription<sensor_msgs::msg::JointState>(
+        m_topic_name, queue_size, 
+        std::bind(&JointStateSubscriber::receive, this, std::placeholders::_1));
     //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
     m_initialized = true;
     m_subscribe_state = true;
   }
 
-  void JointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
+  void JointStateSubscriber::receive(const sensor_msgs::msg::JointState & msg) {
 
     try {
         if (!m_subscribe_state) {
@@ -100,7 +106,7 @@ namespace kaco {
 
       if (operation_mode_ == PROFILE_POSITION) {
       	if(msg.position.size() <= 0){
-      		ROS_WARN("subscriber %s received EMPTY JointState position", m_topic_name.c_str());
+      		RCLCPP_WARN(m_node->get_logger(), "subscriber %s received EMPTY JointState position", m_topic_name.c_str());
       		return;
       	}
 
@@ -110,7 +116,7 @@ namespace kaco {
 
       else if (operation_mode_ == PROFILE_VELOCITY) {
       	if(msg.velocity.size() <= 0){
-      		ROS_WARN("subscriber %s received EMPTY JointState velocity", m_topic_name.c_str());
+      		RCLCPP_WARN(m_node->get_logger(), "subscriber %s received EMPTY JointState velocity", m_topic_name.c_str());
       		return;
       	}
 

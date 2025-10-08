@@ -32,10 +32,11 @@
 #include "entry_subscriber.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
 #include <string>
+#include <functional>
 
 namespace kaco {
 
@@ -55,32 +56,43 @@ void EntrySubscriber::advertise() {
 	
 	std::string topic = m_device_prefix+"set_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
+	if (!m_node) {
+		ERROR("[EntrySubscriber] Node not set. Call set_node() first.");
+		return;
+	}
 
 	switch(m_type) {
 		case Type::uint8:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_uint8, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::UInt8>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_uint8, this, std::placeholders::_1));
 			break;
 		case Type::uint16:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_uint16, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::UInt16>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_uint16, this, std::placeholders::_1));
 			break;
 		case Type::uint32:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_uint32, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::UInt32>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_uint32, this, std::placeholders::_1));
 			break;
 		case Type::int8:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_int8, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::Int8>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_int8, this, std::placeholders::_1));
 			break;
 		case Type::int16:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_int16, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::Int16>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_int16, this, std::placeholders::_1));
 			break;
 		case Type::int32:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_int32, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::Int32>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_int32, this, std::placeholders::_1));
 			break;
 		case Type::boolean:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_boolean, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::Bool>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_boolean, this, std::placeholders::_1));
 			break;
 		case Type::string:
-			m_subscriber = nh.subscribe(topic, queue_size, &EntrySubscriber::receive_string, this);
+			m_subscriber = m_node->create_subscription<std_msgs::msg::String>(
+				topic, queue_size, std::bind(&EntrySubscriber::receive_string, this, std::placeholders::_1));
 			break;
 		default:
 			ERROR("[EntryPublisher::advertise] Invalid entry type.")
@@ -88,7 +100,7 @@ void EntrySubscriber::advertise() {
     m_subscribe_state = true;
 }
 
-void EntrySubscriber::receive_uint8(const std_msgs::UInt8& msg) {
+void EntrySubscriber::receive_uint8(const std_msgs::msg::UInt8& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -104,7 +116,7 @@ void EntrySubscriber::receive_uint8(const std_msgs::UInt8& msg) {
 	}
 }
 
-void EntrySubscriber::receive_uint16(const std_msgs::UInt16& msg) {
+void EntrySubscriber::receive_uint16(const std_msgs::msg::UInt16& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -120,7 +132,7 @@ void EntrySubscriber::receive_uint16(const std_msgs::UInt16& msg) {
 	}
 }
 
-void EntrySubscriber::receive_uint32(const std_msgs::UInt32& msg) {
+void EntrySubscriber::receive_uint32(const std_msgs::msg::UInt32& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -136,7 +148,7 @@ void EntrySubscriber::receive_uint32(const std_msgs::UInt32& msg) {
 	}
 }
 
-void EntrySubscriber::receive_int8(const std_msgs::Int8& msg) {
+void EntrySubscriber::receive_int8(const std_msgs::msg::Int8& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -152,7 +164,7 @@ void EntrySubscriber::receive_int8(const std_msgs::Int8& msg) {
 	}
 }
 
-void EntrySubscriber::receive_int16(const std_msgs::Int16& msg) {
+void EntrySubscriber::receive_int16(const std_msgs::msg::Int16& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -168,7 +180,7 @@ void EntrySubscriber::receive_int16(const std_msgs::Int16& msg) {
 	}
 }
 
-void EntrySubscriber::receive_int32(const std_msgs::Int32& msg) {
+void EntrySubscriber::receive_int32(const std_msgs::msg::Int32& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -184,7 +196,7 @@ void EntrySubscriber::receive_int32(const std_msgs::Int32& msg) {
 	}
 }
 
-void EntrySubscriber::receive_boolean(const std_msgs::Bool& msg) {
+void EntrySubscriber::receive_boolean(const std_msgs::msg::Bool& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
@@ -200,7 +212,7 @@ void EntrySubscriber::receive_boolean(const std_msgs::Bool& msg) {
 	}
 }
 
-void EntrySubscriber::receive_string(const std_msgs::String& msg) {
+void EntrySubscriber::receive_string(const std_msgs::msg::String& msg) {
 
     if (!m_subscribe_state) {
         WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
