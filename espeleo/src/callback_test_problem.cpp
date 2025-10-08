@@ -36,9 +36,9 @@
 #include "test_entry_publisher.h"
 #include "entry_subscriber.h"
 #include "mapping.h"
-#include "ros/ros.h"
-#include <std_srvs/Empty.h>
-#include <std_srvs/Trigger.h>
+#include "rclcpp/rclcpp.hpp"
+#include <std_srvs/srv/empty.hpp>
+#include <std_srvs/srv/trigger.hpp>
 #include "publisher.h"
 
 
@@ -52,19 +52,19 @@
 kaco::Master master;
 kaco::Bridge bridge;
 
-bool reset_motors(std_srvs::TriggerRequest &req, std_srvs::TriggerResponse &res)
+void reset_motors(const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+                  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
 	
-	ROS_INFO("RESET MOTORS CALLED");
+	auto logger = rclcpp::get_logger("callback_test_problem");
+	RCLCPP_INFO(logger, "RESET MOTORS CALLED");
 
-	ROS_INFO("SLEEPING...");
+	RCLCPP_INFO(logger, "SLEEPING...");
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-	ROS_INFO("AWAKE...");
+	RCLCPP_INFO(logger, "AWAKE...");
 
-  	res.success = true;
-  	ROS_INFO("sending back response: [%d]", res.success);
-
-  	return true;
+  	response->success = true;
+  	RCLCPP_INFO(logger, "sending back response: [%d]", response->success);
 }
 
 int main(int argc, char* argv[]) {
@@ -74,28 +74,35 @@ int main(int argc, char* argv[]) {
 	const double loop_rate = 5; // [Hz]
 
 	// Create bridge
-	ros::init(argc, argv, "callback_test_problem");
+	rclcpp::init(argc, argv);
+	auto node = rclcpp::Node::make_shared("callback_test_problem");
 
-  	ros::NodeHandle n;
-  	ros::ServiceServer service = n.advertiseService("reset_motors", reset_motors);
+  	auto service = node->create_service<std_srvs::srv::Trigger>("reset_motors", reset_motors);
 
+	// Set the node for all publishers and subscribers
 	for (size_t i=0; i < 6; ++i) {
 
 		uint8_t device = i + 1;
 
 		auto joint_state_pub = std::make_shared<kaco::TestJointStatePublisher>(device, 0, 350000);
+		joint_state_pub->set_node(node);
 		bridge.add_publisher(joint_state_pub, loop_rate);
 
 		auto status_pub = std::make_shared<kaco::TestEntryPublisher>(device, "statusword");
+		status_pub->set_node(node);
 		bridge.add_publisher(status_pub, loop_rate);
 
 		auto current_pub = std::make_shared<kaco::TestEntryPublisher>(device, "current_actual_value");
+		current_pub->set_node(node);
 		bridge.add_publisher(current_pub, loop_rate);
 
 		auto joint_state_sub = std::make_shared<kaco::TestJointStateSubscriber>(device, 0, 350000);
+		joint_state_sub->set_node(node);
 		bridge.add_subscriber(joint_state_sub);
 
 	}
 
-	bridge.run();
+	// ROS 2 spin instead of bridge.run()
+	rclcpp::spin(node);
+	rclcpp::shutdown();
 }

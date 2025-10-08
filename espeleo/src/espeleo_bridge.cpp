@@ -73,7 +73,7 @@ bool reset_motors(){
         device.stop_request_heartbeat();
     }
 
-	ROS_INFO("resetting CAN communication and nodes");
+        RCLCPP_INFO(rclcpp::get_logger("espeleo_bridge"), "resetting CAN communication and nodes");
 	master.core.nmt.reset_communication_all_nodes();
 	master.core.nmt.reset_all_nodes();
 
@@ -100,9 +100,9 @@ bool reset_motors(){
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	ROS_INFO("SLEEPING...");
+	RCLCPP_INFO(rclcpp::get_logger("espeleo_bridge"), "SLEEPING...");
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	ROS_INFO_STREAM("AWAKE... pub list size:" << pub_list.size());
+        RCLCPP_INFO_STREAM(rclcpp::get_logger("espeleo_bridge"), "AWAKE... pub list size:" << pub_list.size());
 
     for(unsigned int i=0; i < pub_list.size(); ++i){
 		pub_list[i]->advertise();
