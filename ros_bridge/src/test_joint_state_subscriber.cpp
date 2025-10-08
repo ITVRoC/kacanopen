@@ -34,7 +34,7 @@
 #include "logger.h"
 #include "profiles.h"
 #include "sdo_error.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include <string>
 #include <thread>
 #include <chrono>
@@ -59,28 +59,31 @@ namespace kaco {
   void TestJointStateSubscriber::advertise() {
 
     assert(!m_topic_name.empty());
-    ROS_DEBUG_STREAM("Advertising " << m_topic_name);
-    ros::NodeHandle nh;
-    m_subscriber = nh.subscribe(m_topic_name, queue_size, & TestJointStateSubscriber::receive, this, ros::TransportHints().tcpNoDelay());
-    //m_subscriber = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receive, this);
+    RCLCPP_DEBUG_STREAM(m_node->get_logger(), "Advertising " << m_topic_name);
+    
+    if (!m_node) {
+        ERROR("[TestJointStateSubscriber] Node not set. Call set_node() first.");
+        return;
+    }
+    
+    m_subscriber = m_node->create_subscription<sensor_msgs::msg::JointState>(
+        m_topic_name, queue_size, std::bind(&TestJointStateSubscriber::receive, this, std::placeholders::_1));
     m_initialized = true;
     m_subscribe_state = true;
 
-    // Test callback - DELETEME
-    //m_subscriber1 = nh.subscribe(m_topic_name, queue_size, & JointStateSubscriber::receiveTest, this, ros::TransportHints().tcpNoDelay());
-
   }
 
-  void TestJointStateSubscriber::receive(const sensor_msgs::JointState & msg) {
+  void TestJointStateSubscriber::receive(const sensor_msgs::msg::JointState & msg) {
 
       if (!m_subscribe_state) {
-          WARN("[EntryPublisher] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
+          RCLCPP_WARN(m_node->get_logger(), "[TestJointStateSubscriber] m_subscribe_state is not 'true', not subscribing anything (tip: call set_subscribe_state(true);)");
           return;
       }
-    ROS_INFO("JointStateSubscriber receive -- called %s", m_topic_name.c_str());
-    // ROS_INFO("SLEEPING...");
-    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    // ROS_INFO("AWAKE...");
+    // Test subscriber functionality
+    RCLCPP_INFO(m_node->get_logger(), "TestJointStateSubscriber receive -- called %s", m_topic_name.c_str());
+    RCLCPP_INFO(m_node->get_logger(), "SLEEPING...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    RCLCPP_INFO(m_node->get_logger(), "AWAKE...");
   }
 
   int32_t TestJointStateSubscriber::rad_to_pos(double rad) const {

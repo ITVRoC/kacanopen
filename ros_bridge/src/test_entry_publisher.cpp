@@ -32,17 +32,17 @@
 #include "test_entry_publisher.h"
 #include "utils.h"
 #include "logger.h"
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "sdo_error.h"
 
-#include "std_msgs/UInt8.h"
-#include "std_msgs/UInt16.h"
-#include "std_msgs/UInt32.h"
-#include "std_msgs/Int8.h"
-#include "std_msgs/Int16.h"
-#include "std_msgs/Int32.h"
-#include "std_msgs/Bool.h"
-#include "std_msgs/String.h"
+#include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/int16.hpp"
+#include "std_msgs/msg/int32.hpp"
+#include "std_msgs/msg/bool.hpp"
+#include "std_msgs/msg/string.hpp"
 
 #include <string>
 
@@ -62,9 +62,14 @@ void TestEntryPublisher::advertise() {
 
 	std::string topic = m_device_prefix+"get_"+m_name;
 	DEBUG_LOG("Advertising "<<topic);
-	ros::NodeHandle nh;
-
-	m_publisher = nh.advertise<std_msgs::UInt8>(topic, queue_size);
+	
+	if (!m_node) {
+		ERROR("[TestEntryPublisher] Node not set. Call set_node() first.");
+		return;
+	}
+	
+	// For test purposes, create a UInt8 publisher
+	m_publisher = m_node->create_publisher<std_msgs::msg::UInt8>(topic, queue_size);
 	m_publish_state = true;
 }
 
@@ -75,19 +80,21 @@ void TestEntryPublisher::set_publish_state(bool state) {
 void TestEntryPublisher::publish() {
 
 	if (!m_publish_state) {
-		WARN("[EntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+		RCLCPP_WARN(m_node->get_logger(), "[TestEntryPublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
 		return;
 	}
 
 	try {
 
-		std_msgs::UInt8 msg;
-		msg.data = 123; // auto cast!
-		m_publisher.publish(msg);
+		// Publish test data
+		std_msgs::msg::UInt8 msg;
+		msg.data = 123; // Test value
+		auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<std_msgs::msg::UInt8>>(m_publisher);
+		typed_pub->publish(msg);
 		
 	} catch (const sdo_error& error) {
 		// TODO: only catch timeouts?
-		ERROR("Exception in EntryPublisher::publish(): "<<error.what());
+		ERROR("Exception in TestEntryPublisher::publish(): "<<error.what());
 	}
 
 }

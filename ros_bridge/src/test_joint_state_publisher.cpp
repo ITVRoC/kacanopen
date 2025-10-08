@@ -34,8 +34,8 @@
 #include "logger.h"
 #include "sdo_error.h"
 
-#include "ros/ros.h"
-#include "sensor_msgs/JointState.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
 
 #include <string>
 #include <stdexcept>
@@ -61,8 +61,13 @@ void TestJointStatePublisher::advertise() {
 
 	assert(!m_topic_name.empty());
 	DEBUG_LOG("Advertising "<<m_topic_name);
-	ros::NodeHandle nh;
-	m_publisher = nh.advertise<sensor_msgs::JointState>(m_topic_name, queue_size);
+	
+	if (!m_node) {
+		ERROR("[TestJointStatePublisher] Node not set. Call set_node() first.");
+		return;
+	}
+	
+	m_publisher = m_node->create_publisher<sensor_msgs::msg::JointState>(m_topic_name, queue_size);
 	m_initialized = true;
 	m_publish_state = true;
 
@@ -80,15 +85,16 @@ void TestJointStatePublisher::publish() {
 		}
 
 		if (!m_publish_state) {
-			WARN("[JointStatePublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
+			RCLCPP_WARN(m_node->get_logger(), "[TestJointStatePublisher] m_publish_state is not 'true', not publishing anything (tip: call set_publish_state(true);)");
 			return;
 		}
 
-		sensor_msgs::JointState js;
+		// Publish test joint state data
+		sensor_msgs::msg::JointState js;
 
 		js.name.resize(1);
 		js.name[0] = m_topic_name;
-		js.header.stamp = ros::Time::now();
+		js.header.stamp = m_node->now();
 
 		js.position.resize(1);
 		const int32_t pos = 10;
@@ -98,7 +104,8 @@ void TestJointStatePublisher::publish() {
 		const int32_t vel = 20;
 		js.velocity[0] = vel;
 
-		m_publisher.publish(js);
+		auto typed_pub = std::static_pointer_cast<rclcpp::Publisher<sensor_msgs::msg::JointState>>(m_publisher);
+		typed_pub->publish(js);
 
 	} catch (const sdo_error& error) {
 		// TODO: only catch timeouts?
