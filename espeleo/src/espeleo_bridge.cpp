@@ -133,13 +133,22 @@ int main(int argc, char* argv[]) {
 	rclcpp::init(argc, argv);
 	auto node = rclcpp::Node::make_shared("canopen_bridge");
 
-	// Set the name of your CAN bus. "slcan0" is a common bus name
-	// for the first SocketCAN device on a Linux system.
-  	const std::string busname = "can0";
+	// Set the name of your CAN bus. Use can0 for real hardware
+	// or vcan0 for virtual testing. Can be overridden by command line arguments.
+	std::string busname = "can0";   // Default to real CAN hardware
+	std::string baudrate = "1M";    // Default baudrate
 
-	// Set the baudrate of your CAN bus. Most drivers support the values
-	// "1M", "500K", "125K", "100K", "50K", "20K", "10K" and "5K".
-	const std::string baudrate = "1M";
+	// Allow command line arguments to override defaults
+	if (argc >= 2) {
+		busname = argv[1];
+		RCLCPP_INFO(node->get_logger(), "Using CAN bus from argument: %s", busname.c_str());
+	}
+	if (argc >= 3) {
+		baudrate = argv[2];
+		RCLCPP_INFO(node->get_logger(), "Using baudrate from argument: %s", baudrate.c_str());
+	}
+	
+	RCLCPP_INFO(node->get_logger(), "Initializing CANopen master on %s at %s", busname.c_str(), baudrate.c_str());
 
     //	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
     //		<<"uint8 messages for each connected digital IO device (CiA 401).");
@@ -177,6 +186,9 @@ int main(int argc, char* argv[]) {
 	node->declare_parameter("deceleration", deceleration);
 	acceleration = node->get_parameter("acceleration").as_int();
 	deceleration = node->get_parameter("deceleration").as_int();
+
+	// Set the ROS 2 node for the bridge BEFORE creating publishers/subscribers
+	bridge.set_node(node);
 
 	bool found = false;
 	for (size_t i=0; i<master.num_devices(); ++i) {
@@ -257,9 +269,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	reset_motors();
-
-	// Convert bridge to use ROS 2 node
-	bridge.set_node(node);
 	
 	// Spin the node
 	rclcpp::spin(node);
