@@ -2,86 +2,83 @@
 
 namespace kaco
 {
-KaCanopenHardware::KaCanopenHardware(Master* master, ros::NodeHandle& nh, ros::NodeHandle& pnh, const std::vector<std::string>& motor_names)
-  : manager_(master, asi, avi, api, nh, pnh, motor_names)
+KaCanopenHardware::KaCanopenHardware(Master* master, std::shared_ptr<rclcpp::Node> node, std::shared_ptr<rclcpp::Node> pnode, const std::vector<std::string>& motor_names)
+  : master_(master), node_(node), pnode_(pnode), motor_names_(motor_names), manager_(master, node, pnode, motor_names),
+    configured_(false), activated_(false)
 {
-  // TODO throw exception or something
-  try {
-    transmission_loader.reset(new transmission_interface::TransmissionInterfaceLoader(this, &robot_transmissions));
-  }
-  catch(const std::invalid_argument& ex){
-    ROS_ERROR_STREAM("Failed to create transmission interface loader. " << ex.what());
-    return;
-  }
-  catch(const pluginlib::LibraryLoadException& ex){
-    ROS_ERROR_STREAM("Failed to create transmission interface loader. " << ex.what());
-    return;
-  }
-  catch(...){
-    ROS_ERROR_STREAM("Failed to create transmission interface loader. ");
-    return;
-  }
-
-  registerInterface(&asi);
-  registerInterface(&avi);
-  registerInterface(&api);
-
-  std::string urdf_string;
-  nh.getParam("robot_description", urdf_string);
-  while (urdf_string.empty() && ros::ok())
-  {
-    ROS_INFO_STREAM_ONCE("Waiting for robot_description");
-    nh.getParam("robot_description", urdf_string);
-    ros::Duration(0.1).sleep();
-  }
-
-  transmission_interface::TransmissionParser parser;
-  std::vector<transmission_interface::TransmissionInfo> infos;
-  // TODO: throw exception
-  if (!parser.parse(urdf_string, infos))
-  {
-    ROS_ERROR("Error parsing URDF");
-    return;
-  }
-
-  // build a list of all loaded actuator names
-  std::vector<std::string> actuator_names;
-  std::vector<std::shared_ptr<KaCanopenMotor> > motors = manager_.motors();
-  for (const auto& motor : motors)
-  {
-    actuator_names.push_back(motor->actuatorName());
-  }
-
-  // Load all transmissions that are for the loaded motors
-  for (const auto& info : infos)
-  {
-    bool found_some = false;
-    bool found_all = true;
-    for (const auto& actuator : info.actuators_) {
-      if(std::find(actuator_names.begin(), actuator_names.end(), actuator.name_) != actuator_names.end())
-        found_some = true;
-      else
-        found_all = false;
-    }
-    if (found_all)
-    {
-      if (!transmission_loader->load(info))
-      {
-        ROS_ERROR_STREAM("Error loading transmission: " << info.name_);
-        return;
-      }
-      else
-        ROS_INFO_STREAM("Loaded transmission: " << info.name_);
-    }
-    else if (found_some)
-      ROS_ERROR_STREAM("Do not support transmissions that contain only some kacanopen actuators: " << info.name_);
-  }
-
+  RCLCPP_INFO(node_->get_logger(), "KaCanopenHardware initialized for ROS 2");
+  
+  // Initialize state vectors
+  size_t num_motors = motor_names_.size();
+  position_states_.resize(num_motors, 0.0);
+  velocity_states_.resize(num_motors, 0.0);
+  effort_states_.resize(num_motors, 0.0);
+  position_commands_.resize(num_motors, 0.0);
+  velocity_commands_.resize(num_motors, 0.0);
+  effort_commands_.resize(num_motors, 0.0);
+  
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Initialized hardware interface for " << num_motors << " motors");
 }
 
 bool KaCanopenHardware::init()
 {
   return manager_.init();
+}
+
+bool KaCanopenHardware::configure()
+{
+  if (configured_) {
+    RCLCPP_WARN(node_->get_logger(), "Hardware already configured");
+    return true;
+  }
+  
+  bool success = manager_.configure();
+  if (success) {
+    configured_ = true;
+    RCLCPP_INFO(node_->get_logger(), "Hardware configured successfully");
+  } else {
+    RCLCPP_ERROR(node_->get_logger(), "Failed to configure hardware");
+  }
+  return success;
+}
+
+bool KaCanopenHardware::activate()
+{
+  if (!configured_) {
+    RCLCPP_ERROR(node_->get_logger(), "Cannot activate unconfigured hardware");
+    return false;
+  }
+  
+  if (activated_) {
+    RCLCPP_WARN(node_->get_logger(), "Hardware already activated");
+    return true;
+  }
+  
+  bool success = manager_.activate();
+  if (success) {
+    activated_ = true;
+    RCLCPP_INFO(node_->get_logger(), "Hardware activated successfully");
+  } else {
+    RCLCPP_ERROR(node_->get_logger(), "Failed to activate hardware");
+  }
+  return success;
+}
+
+bool KaCanopenHardware::deactivate()
+{
+  if (!activated_) {
+    RCLCPP_WARN(node_->get_logger(), "Hardware already deactivated");
+    return true;
+  }
+  
+  bool success = manager_.deactivate();
+  if (success) {
+    activated_ = false;
+    RCLCPP_INFO(node_->get_logger(), "Hardware deactivated successfully");
+  } else {
+    RCLCPP_ERROR(node_->get_logger(), "Failed to deactivate hardware");
+  }
+  return success;
 }
 
 void KaCanopenHardware::updateDiagnostics()
@@ -91,18 +88,76 @@ void KaCanopenHardware::updateDiagnostics()
 
 void KaCanopenHardware::read()
 {
+  if (!activated_) {
+    return;
+  }
+  
   manager_.read();
-  if(robot_transmissions.get<transmission_interface::ActuatorToJointStateInterface>())
-    robot_transmissions.get<transmission_interface::ActuatorToJointStateInterface>()->propagate();
+  
+  // Update state vectors from manager
+  position_states_ = manager_.getPositions();
+  velocity_states_ = manager_.getVelocities();
+  effort_states_ = manager_.getEfforts();
 }
 
 void KaCanopenHardware::write()
 {
-  if(robot_transmissions.get<transmission_interface::JointToActuatorVelocityInterface>())
-    robot_transmissions.get<transmission_interface::JointToActuatorVelocityInterface>()->propagate();
-  if(robot_transmissions.get<transmission_interface::JointToActuatorPositionInterface>())
-    robot_transmissions.get<transmission_interface::JointToActuatorPositionInterface>()->propagate();
+  if (!activated_) {
+    return;
+  }
+  
+  // Send commands to manager
+  manager_.setVelocityCommands(velocity_commands_);
+  manager_.setPositionCommands(position_commands_);
+  manager_.setEffortCommands(effort_commands_);
+  
   manager_.write();
+}
+
+// State and command access methods
+std::vector<double> KaCanopenHardware::getPositions() const
+{
+  return position_states_;
+}
+
+std::vector<double> KaCanopenHardware::getVelocities() const
+{
+  return velocity_states_;
+}
+
+std::vector<double> KaCanopenHardware::getEfforts() const
+{
+  return effort_states_;
+}
+
+void KaCanopenHardware::setVelocityCommands(const std::vector<double>& velocities)
+{
+  if (velocities.size() != velocity_commands_.size()) {
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Velocity command size mismatch: expected " 
+                        << velocity_commands_.size() << ", got " << velocities.size());
+    return;
+  }
+  velocity_commands_ = velocities;
+}
+
+void KaCanopenHardware::setPositionCommands(const std::vector<double>& positions)
+{
+  if (positions.size() != position_commands_.size()) {
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Position command size mismatch: expected " 
+                        << position_commands_.size() << ", got " << positions.size());
+    return;
+  }
+  position_commands_ = positions;
+}
+
+void KaCanopenHardware::setEffortCommands(const std::vector<double>& efforts)
+{
+  if (efforts.size() != effort_commands_.size()) {
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Effort command size mismatch: expected " 
+                        << effort_commands_.size() << ", got " << efforts.size());
+    return;
+  }
+  effort_commands_ = efforts;
 }
 
 }

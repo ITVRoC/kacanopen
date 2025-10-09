@@ -5,38 +5,54 @@
 
 namespace kaco
 {
-KaCanopenMotor::KaCanopenMotor(Master *master, const std::string &name, ros::NodeHandle &nh, ros::NodeHandle &config_nh, hardware_interface::ActuatorStateInterface &asi, hardware_interface::VelocityActuatorInterface &avi, hardware_interface::PositionActuatorInterface &api)
+KaCanopenMotor::KaCanopenMotor(Master *master, const std::string &name, std::shared_ptr<rclcpp::Node> node, std::shared_ptr<rclcpp::Node> config_node)
   : valid_(true)
   , name_(name)
-  , nh_(nh)
-  , config_nh_(config_nh)
+  , node_(node)
+  , config_node_(config_node)
   , device_id_(0)
   , use_serial_number_(true)
   , encoder_min_(0)
   , encoder_max_(65535)
   , master_(master)
+  , position_(0.0)
+  , velocity_(0.0)
+  , effort_(0.0)
+  , position_cmd_(0.0)
+  , velocity_cmd_(0.0)
+  , effort_cmd_(0.0)
 {
-  if (!config_nh_.getParam("actuator_name", actuator_name_))
+  // TODO: ROS 2 parameter conversion needed
+  config_node_->declare_parameter("actuator_name", "");
+  if (!config_node_->get_parameter("actuator_name", actuator_name_) || actuator_name_.empty())
   {
-    ROS_ERROR("You must specify an actuator name");
+    RCLCPP_ERROR(config_node_->get_logger(), "You must specify an actuator name");
     valid_ = false;
   }
 
   int device_id = 0;
-  if (!config_nh_.getParam("serial_number", device_serial_) && !config_nh_.getParam("device_id", device_id))
+  config_node_->declare_parameter("serial_number", "");
+  config_node_->declare_parameter("device_id", 0);
+  
+  std::string temp_serial;
+  bool has_serial = config_node_->get_parameter("serial_number", temp_serial) && !temp_serial.empty();
+  bool has_device_id = config_node_->get_parameter("device_id", device_id) && device_id != 0;
+  
+  if (!has_serial && !has_device_id)
   {
-    ROS_ERROR("You must specify a serial number or a port name");
+    RCLCPP_ERROR(config_node_->get_logger(), "You must specify a serial number or a device_id");
     valid_ = false;
   }
-  else if (config_nh_.getParam("serial_number", device_serial_))
+  else if (has_serial)
   {
+    device_serial_ = temp_serial;
     use_serial_number_ = true;
   }
-  else if (config_nh_.getParam("device_id", device_id))
+  else if (has_device_id)
   {
     if (device_id < 0)
     {
-      ROS_ERROR("Device id must be >= 0");
+      RCLCPP_ERROR(config_node_->get_logger(), "Device id must be >= 0");
       valid_ = false;
     }
     else
@@ -45,19 +61,24 @@ KaCanopenMotor::KaCanopenMotor(Master *master, const std::string &name, ros::Nod
     }
     use_serial_number_ = false;
   }
-  config_nh_.param("sensor/encoder_min", encoder_min_, encoder_min_);
-  config_nh_.param("sensor/encoder_max", encoder_max_, encoder_max_);
+  // ROS 2 parameter conversion
+  config_node_->declare_parameter("sensor.encoder_min", encoder_min_);
+  config_node_->declare_parameter("sensor.encoder_max", encoder_max_);
+  encoder_min_ = config_node_->get_parameter("sensor.encoder_min").as_int();
+  encoder_max_ = config_node_->get_parameter("sensor.encoder_max").as_int();
+  
   if (encoder_min_ == encoder_max_)
     throw std::invalid_argument("encoder_max must be different from encoder_min");
 
-  ROS_INFO_STREAM(actuator_name_);
-  hardware_interface::ActuatorStateHandle state_handle(actuator_name_, &position_, &velocity_, &effort_);
-  asi.registerHandle(state_handle);
-
-  hardware_interface::ActuatorHandle position_handle(state_handle, &position_cmd_);
-  api.registerHandle(position_handle);
-  hardware_interface::ActuatorHandle velocity_handle(state_handle, &velocity_cmd_);
-  avi.registerHandle(velocity_handle);
+  RCLCPP_INFO_STREAM(node_->get_logger(), actuator_name_);
+  
+  // TODO: ROS 2 hardware interface - these will be handled by ros2_control framework
+  // hardware_interface::ActuatorStateHandle state_handle(actuator_name_, &position_, &velocity_, &effort_);
+  // asi.registerHandle(state_handle);
+  // hardware_interface::ActuatorHandle position_handle(state_handle, &position_cmd_);
+  // api.registerHandle(position_handle);
+  // hardware_interface::ActuatorHandle velocity_handle(state_handle, &velocity_cmd_);
+  // avi.registerHandle(velocity_handle);
 
   /*
   diagnostic_updater_.setHardwareID(serial_number_str);
@@ -86,7 +107,7 @@ bool KaCanopenMotor::init()
 {
   if (use_serial_number_)
   {
-    ROS_ERROR("Not implemented!");
+    RCLCPP_ERROR(node_->get_logger(), "Not implemented!");
     return false;
     // Loop stuff
   }
@@ -97,7 +118,7 @@ bool KaCanopenMotor::init()
   device_->load_dictionary_from_library();
 
   const auto profile = device_->get_device_profile_number();
-  ROS_INFO_STREAM("Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "
+  RCLCPP_INFO_STREAM(node_->get_logger(), "Found CiA "<<std::dec<<(unsigned)profile<<" device with node ID "
                   <<static_cast<int>(device_->get_node_id())<<": "<<device_->get_entry("manufacturer_device_name"));
   bool found = false;
 
@@ -122,10 +143,10 @@ bool KaCanopenMotor::init()
     found = true;
 
 
-    ROS_INFO("Set velocity mode");
+    RCLCPP_INFO(node_->get_logger(), "Set velocity mode");
     device_->set_entry("modes_of_operation", device_->get_constant("profile_velocity_mode"));
 
-    ROS_INFO("Enable operation");
+    RCLCPP_INFO(node_->get_logger(), "Enable operation");
     device_->execute("enable_operation");
 
     //PDOs for General Control word (0x200 + Device id)
@@ -176,11 +197,11 @@ void KaCanopenMotor::read()
     const int32_t vel = device_->get_entry("Velocity actual value");
     position_ = pos_to_rad(pos);
     velocity_ = static_cast<double>(vel) * 2 * M_PI / (encoder_max_ - encoder_min_);
-    ROS_INFO_STREAM("Velocity " << velocity_ << ", pos " << position_);
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Velocity " << velocity_ << ", pos " << position_);
   }
   catch (const sdo_error& error)
   {
-    ROS_ERROR_STREAM("Exception in " << __FUNCTION__ << ": " << error.what());
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Exception in " << __FUNCTION__ << ": " << error.what());
   }
   effort_ = 0;
 }
@@ -193,10 +214,10 @@ void KaCanopenMotor::write()
     double ticks_per_sec = velocity_cmd_ * (encoder_max_ - encoder_min_) / (2 * M_PI);
     device_->set_entry("Target Velocity",static_cast<int32_t>(ticks_per_sec));
     device_->set_entry("Controlword", static_cast<uint16_t>(0x1F));
-    ROS_INFO_STREAM("Velocity command " << velocity_cmd_);
+    RCLCPP_INFO_STREAM(node_->get_logger(), "Velocity command " << velocity_cmd_);
   } catch (const sdo_error& error) {
     // TODO: only catch timeouts?
-    ROS_ERROR_STREAM("Exception in " << __FUNCTION__ << ": " << error.what());
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Exception in " << __FUNCTION__ << ": " << error.what());
   }
 }
 

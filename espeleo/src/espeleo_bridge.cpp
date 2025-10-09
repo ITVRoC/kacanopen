@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     //	PRINT("This example publishes and subscribes JointState messages for each connected CiA 402 device as well as"
     //		<<"uint8 messages for each connected digital IO device (CiA 401).");
 
-	const double loop_rate = 5; // [Hz]
+	const double loop_rate = 150; // [Hz] - High frequency for real-time performance
 
 	
 	if (!master.start(busname, baudrate)) {

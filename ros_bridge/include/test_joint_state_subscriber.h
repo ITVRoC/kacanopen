@@ -86,11 +86,11 @@ namespace kaco {
 		static const unsigned queue_size = 1;
 
 		/// Callback "received ROS JointState message"
-		void receive(const sensor_msgs::JointState& msg);
+                void receive(const sensor_msgs::msg::JointState& msg);
 
 
 		// TEST DELETE ME
-		void receiveTest(const sensor_msgs::JointState& msg);
+		void receiveTest(const sensor_msgs::msg::JointState& msg);
 
 
 
@@ -110,8 +110,8 @@ namespace kaco {
 		bool m_initialized;
         bool m_subscribe_state;
 
-		ros::Subscriber m_subscriber;
-		ros::Subscriber m_subscriber1;
+                rclcpp::SubscriptionBase::SharedPtr m_subscriber;
+		// Converted to ROS 2 subscription above
 
 	};
 
