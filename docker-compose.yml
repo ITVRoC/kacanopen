@@ -6,9 +6,13 @@ services:
     container_name: kacanopen_ros2
     privileged: true
     network_mode: host
+    ipc: host  # Enable shared memory for high-frequency communication
+    pid: host  # Share PID namespace for better performance
     volumes:
       - .:/workspace/src/kacanopen:rw
       - /dev:/dev
+      - /dev/shm:/dev/shm  # Shared memory for high-performance IPC
+      - /tmp:/tmp  # Temporary files access
     environment:
       - ROS_DOMAIN_ID=0
       - BUSNAME=can0
@@ -23,10 +27,10 @@ services:
       bash -c "
         source /opt/ros/jazzy/setup.bash &&
         source /workspace/install/setup.bash &&
-        ros2 launch kacanopen espeleo_kacanopen_launch.py 
-          busname:=$${BUSNAME} 
-          baudrate:=$${BAUDRATE} 
-          acceleration:=$${ACCELERATION} 
-          deceleration:=$${DECELERATION} 
-          reset_motors_flag:=$${RESET_MOTORS_FLAG}
+        export LD_LIBRARY_PATH=/workspace/install/kacanopen/lib/kacanopen:/workspace/install/kacanopen/lib/KaCanOpen_drivers:/workspace/install/kacanopen/lib:$$LD_LIBRARY_PATH &&
+        export ROS_LOCALHOST_ONLY=1 &&
+        export RCUTILS_LOGGING_BUFFERED_STREAM=1 &&
+        export RCUTILS_COLORIZED_OUTPUT=1 &&
+        ulimit -r 99 &&
+        ros2 launch kacanopen espeleo_kacanopen_launch.py busname:=$${BUSNAME} baudrate:=$${BAUDRATE} acceleration:=$${ACCELERATION} deceleration:=$${DECELERATION} reset_motors_flag:=$${RESET_MOTORS_FLAG}
       "
