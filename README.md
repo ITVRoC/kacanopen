@@ -93,10 +93,11 @@ docker compose exec kacanopen bash -c "source /opt/ros/jazzy/setup.bash && ros2 
 
 | Service | Type | Description |
 |---------|------|-------------|
-| `/enable_motors` | `std_srvs/srv/Trigger` | Enable all motors |
-| `/disable_motors` | `std_srvs/srv/Trigger` | Disable all motors |
+| `/reset_motors` | `std_srvs/srv/Trigger` | Full CAN reset and motor re-initialization |
 
 *Note: `{N}` represents the CANopen node ID (e.g., device1, device3, device4, device6)*
+
+> For command examples (sending velocity, monitoring topics, resetting motors), see the [Quick Start Guide](QUICK_START.md).
 
 ## ⚙️ Configuration
 
@@ -271,7 +272,7 @@ ros2 topic echo /device1/get_joint_state
 
 # Check motor services
 ros2 service list
-ros2 service call /enable_motors std_srvs/srv/Trigger "{}"
+ros2 service call /reset_motors std_srvs/srv/Trigger "{}"
 ```
 
 ## 📊 Performance Metrics

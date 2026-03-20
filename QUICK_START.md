@@ -53,25 +53,33 @@ ros2 topic echo /device1/get_joint_state
 
 ### Send Velocity Commands
 ```bash
-# Send velocity command to motor 1 (rad/s)
+# Send velocity command to motor 1 (e.g. 1000)
 ros2 topic pub /device1/set_joint_state sensor_msgs/msg/JointState "
 header:
   stamp: {sec: 0, nanosec: 0}
   frame_id: ''
 name: ['motor1']
 position: [0.0]
-velocity: [1.0]
+velocity: [1000.0]
+effort: [0.0]
+"
+
+# Stop motor 1
+ros2 topic pub /device1/set_joint_state sensor_msgs/msg/JointState "
+header:
+  stamp: {sec: 0, nanosec: 0}
+  frame_id: ''
+name: ['motor1']
+position: [0.0]
+velocity: [0.0]
 effort: [0.0]
 "
 ```
 
-### Control Services
+### Services
 ```bash
-# Enable all motors
-ros2 service call /enable_motors std_srvs/srv/Trigger "{}"
-
-# Disable all motors  
-ros2 service call /disable_motors std_srvs/srv/Trigger "{}"
+# Reset all motors (full CAN reset + re-initialization)
+ros2 service call /reset_motors std_srvs/srv/Trigger "{}"
 ```
 
 ## 4. Configuration
