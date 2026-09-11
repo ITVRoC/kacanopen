@@ -189,20 +189,32 @@ SDOResponse SDO::send_sdo_and_wait(uint8_t command, uint8_t node_id, uint16_t in
 	// assert: m_send_and_wait_mutex.size() == 256 > std::numeric_limits<uint8_t>::max()
 	std::lock_guard<std::mutex> scoped_lock(m_send_and_wait_mutex[node_id]);
 
-	std::promise<SDOResponse> received_promise;
-	std::future<SDOResponse> received_future = received_promise.get_future();
-
-	{
-		std::lock_guard<std::mutex> scoped_lock(m_send_and_wait_receiver_mutexes[node_id]);
-		m_send_and_wait_receivers[node_id] = [&] (SDOResponse response) {
+//	std::promise<SDOResponse> received_promise;
+//	std::future<SDOResponse> received_future = received_promise.get_future();
+//
+//	{
+//		std::lock_guard<std::mutex> scoped_lock(m_send_and_wait_receiver_mutexes[node_id]);
+//		m_send_and_wait_receivers[node_id] = [&] (SDOResponse response) {
 			// This is only called if the response comes from the correct node
 			//   (process_incoming_message takes care of this).
 			// The reference to received_promise is assured to be alive
 			//   since the receiver is removed before this method returns.
-			received_promise.set_value(response);
-		};
-	}
+//			received_promise.set_value(response);
+//		};
+//	}
+    auto shared_promise = std::make_shared<std::promise<SDOResponse>>();
+    std::future<SDOResponse> received_future = shared_promise->get_future();
 
+    {
+        std::lock_guard<std::mutex> scoped_lock(m_send_and_wait_receiver_mutexes[node_id]);
+        m_send_and_wait_receivers[node_id] = [shared_promise] (SDOResponse response) {
+            try {
+                shared_promise->set_value(response);
+            } catch (const std::future_error& e) {
+                // Ignora respostas duplicadas ou tardias do barramento CAN
+            }
+        };
+    }
 	// send message
 	Message message;
 	message.cob_id = 0x600+node_id;

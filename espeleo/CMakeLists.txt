@@ -41,6 +41,10 @@ foreach(TARGET_SRC ${TARGETS_SRC})
 endforeach(TARGET_SRC ${TARGETS_SRC})
 
 # Install
-if (${INSTALL_EXAMPLES})
-	kacanopen_install("${KACANOPEN_TARGET_NAMES}" FALSE)
-endif()
+#if (${INSTALL_EXAMPLES})
+#	kacanopen_install("${KACANOPEN_TARGET_NAMES}" FALSE)
+#endif()
+
+install(TARGETS ${KACANOPEN_TARGET_NAMES}
+    DESTINATION lib/${PROJECT_NAME}
+)
